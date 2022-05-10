@@ -170,12 +170,6 @@
     <ClInclude Include="headers\objects\Superpixel.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CUDAslic\include\SlicCudaDevice.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="CUDAslic\include\SlicCudaHost.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="config.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -184,8 +178,6 @@
   <ItemGroup>
     <CudaCompile Include="Cuda_functions\functions\selective_blur.cu" />
     <CudaCompile Include="Cuda_functions\functions\fast_selective_blur.cu" />
-    <CudaCompile Include="CUDAslic\src\SlicCudaDevice.cu" />
-    <CudaCompile Include="CUDAslic\src\SlicCudaHost.cu" />
     <CudaCompile Include="Cuda_functions\functions\find_borders.cu" />
   </ItemGroup>
 </Project>

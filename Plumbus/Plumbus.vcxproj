@@ -189,8 +189,6 @@
     <ClCompile Include="classes\util\Window.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <CudaCompile Include="CUDAslic\src\SlicCudaDevice.cu" />
-    <CudaCompile Include="CUDAslic\src\SlicCudaHost.cu" />
     <CudaCompile Include="Cuda_functions\functions\fast_selective_blur.cu">
       <TargetMachinePlatform Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">64</TargetMachinePlatform>
       <CodeGeneration Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">compute_86,sm_86</CodeGeneration>
@@ -213,8 +211,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="config.h" />
-    <ClInclude Include="CUDAslic\include\SlicCudaDevice.h" />
-    <ClInclude Include="CUDAslic\include\SlicCudaHost.h" />
     <ClInclude Include="Cuda_functions\headers\fast_selective_blur.cuh" />
     <ClInclude Include="Cuda_functions\headers\find_borders.cuh" />
     <ClInclude Include="Cuda_functions\headers\selective_blur.h" />
