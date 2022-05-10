@@ -26,4 +26,7 @@ std::vector<int[2]> find_borders_launch() {
 
 
 	find_borders_kernel << < num_blocks, threads_per_block >> > ();
+
+
+
 }
