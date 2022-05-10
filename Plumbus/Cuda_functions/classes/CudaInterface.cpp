@@ -39,17 +39,17 @@ std::set<int[2]> CudaInterface::find_borders(cv::Mat labels, int num_superpixels
 
 
 
-	std::vector<int[2]> pairs;
-	std::set<int[2]> output;
+	//std::vector<int[2]> pairs;
+	//std::set<int[2]> output;
 
-	pairs = find_borders_launch();
+	//pairs = find_borders_launch();
 
-	for (int[2] pair : pairs) {
-		output.insert({pair[0], pair[1]});
-		output.insert({pair[1], pair[0]});
-	}
+	//for (int[2] pair : pairs) {
+	//	output.insert({pair[0], pair[1]});
+	//	output.insert({pair[1], pair[0]});
+	//}
 
-	return output;
+	//return output;
 }
 
 cv::Mat CudaInterface::selective_blur(cv::Mat input, int steps, int threshold, int kernel_size) {
