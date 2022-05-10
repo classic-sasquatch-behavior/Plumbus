@@ -19,20 +19,7 @@
 #include <opencv2/ximgproc.hpp>
 #include<opencv2/tracking.hpp>
 
-//CUDA superpixel from github
-#include"CUDAslic/include/SlicCudaHost.h"
-
 //std
-#include<string>
-#include<filesystem>
-#include<iostream>
-#include<fstream>
-#include<vector>
-#include<memory>
-#include<set>
-#include<algorithm>
-#include<queue>
-#include<unordered_map>
-#include<chrono>
+#include"standard_includes.h"
 
 namespace fs = std::filesystem;

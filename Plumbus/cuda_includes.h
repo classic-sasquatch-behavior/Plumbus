@@ -13,14 +13,5 @@
 #include<cuda_runtime.h>
 #include<cuda_runtime_api.h>
 
-#include<string>
-#include<filesystem>
-#include<iostream>
-#include<fstream>
-#include<vector>
-#include<memory>
-#include<set>
-#include<algorithm>
-#include<queue>
-#include<unordered_map>
-#include<chrono>
+//std
+#include"standard_includes.h"

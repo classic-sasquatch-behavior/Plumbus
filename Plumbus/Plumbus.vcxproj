@@ -238,6 +238,7 @@
     <ClInclude Include="old source\oldDifferenceMap.h" />
     <ClInclude Include="old source\oldFrame.h" />
     <ClInclude Include="headers\util\Window.h" />
+    <ClInclude Include="standard_includes.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
