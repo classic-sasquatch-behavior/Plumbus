@@ -186,7 +186,7 @@ void Field::refine_regions_naive(int threshold) {
 				}
 			}
 
-			merge_regions(smallest_neighbor, region);
+			merge_regions(smallest_neighbor, region); //smallest neighbor doesnt exist
 
 
 		
@@ -259,67 +259,19 @@ void Field::refresh_region_list() {
 }
 
 void Field::connect_neighbors() {
-	const int NEIGHBOR_KERNEL_SIZE = 5;
-	const int KERNEL_MAX = (NEIGHBOR_KERNEL_SIZE - 1) / 2;
-	const int KERNEL_MIN = -1 * KERNEL_MAX;
+	std::vector<thrust::pair<int, int>> pairs = GPU->find_borders(labels());
 
-	for (int row = 0; row < bin_rows(); row++) {
-		for (int col = 0; col < bin_cols(); col++) {
-			std::vector<Superpixel*> target_bin = bin_at(row, col);
+	for (thrust::pair<int, int> pair : pairs) {
+		int first_label = pair.first;
+		int second_label = pair.second;
 
-			for (Superpixel* superpixel: target_bin) {
-				for (int irow = KERNEL_MIN; irow <= KERNEL_MAX; irow++) {
-					for (int icol = KERNEL_MIN; icol <= KERNEL_MAX; icol++) {
-						int target_row = row + irow;
-						int target_col = col + icol;
-						if ((target_row > -1)&&(target_col > -1)&&(target_row < bin_rows())&&(target_col < bin_cols())) {
-							std::vector<Superpixel*> neighbor_bin = bin_at(target_row, target_col);
-							for (Superpixel* target : neighbor_bin) {
-								if (target->mean() != superpixel->mean()) {
-									superpixel->add_neighbor(target);
-								}
-							}
-						}
-					}
-				}
-			}
+		if (first_label != -1) {
+			Superpixel* focus = superpixel_at(first_label);
+			Superpixel* target = superpixel_at(second_label);
+
+			focus->add_neighbor(target);
 		}
 	}
-}
-
-void Field::initialize_bins() {
-	int original_num_pixels = original_rows() * original_cols();
-
-	int area_ratio = original_num_pixels / num_superpixels();
-
-	float actual_shrinkage = sqrt(area_ratio);
-
-	int new_rows = std::ceil(original_rows() / std::floor(actual_shrinkage));
-	int new_cols = std::ceil(original_cols() / std::floor(actual_shrinkage));
-
-
-	for (int row = 0; row < new_rows; row++) {
-		std::vector<std::vector<Superpixel*>> new_row;
-		for (int col = 0; col < new_cols; col++) {
-			std::vector<Superpixel*> new_bin;
-			new_row.push_back(new_bin);
-		}
-		_bins.push_back(new_row);
-	}
-
-	_bin_size = std::ceil(original_rows() / new_rows);
-	
-	for (int i = 0; i < num_superpixels(); i++) {
-		Superpixel* target = superpixel_at(i);
-		int target_row = target->mean().y;
-		int target_col = target->mean().x;
-
-		int bin_row = std::floor(target_row / bin_size());
-		int bin_col = std::floor(target_col / bin_size());
-
-		add_to_bin_at(std::min(bin_row, new_rows - 1), std::min(bin_col, new_cols - 1), target);
-	}
-
 }
 
 void Field::form_regions() {

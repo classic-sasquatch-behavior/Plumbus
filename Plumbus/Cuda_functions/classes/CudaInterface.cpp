@@ -16,40 +16,14 @@ CudaInterface::CudaInterface() {
 
 #pragma region GPU functions
 
-std::set<int[2]> CudaInterface::find_borders(cv::Mat labels, int num_superpixels) {
-	
-	int num_field_rows = labels.rows;
-	int num_field_cols = labels.cols;
-	const int num_potential_borders_per_pixel = 8;
-	const int num_integers_per_relationship = 2;
+std::vector<thrust::pair<int, int>> CudaInterface::find_borders(cv::Mat labels) {
+	cv::cuda::GpuMat d_src;
+	d_src.upload(labels);
 
-	int array_size = num_field_rows * num_field_cols * num_potential_borders_per_pixel * num_integers_per_relationship;
+	std::vector<thrust::pair<int, int>> h_out = find_borders_launch(labels.cols, labels.rows, d_src);
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-	//std::vector<int[2]> pairs;
-	//std::set<int[2]> output;
-
-	//pairs = find_borders_launch();
-
-	//for (int[2] pair : pairs) {
-	//	output.insert({pair[0], pair[1]});
-	//	output.insert({pair[1], pair[0]});
-	//}
-
-	//return output;
+	return h_out;
 }
 
 cv::Mat CudaInterface::selective_blur(cv::Mat input, int steps, int threshold, int kernel_size) {

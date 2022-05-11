@@ -1,4 +1,4 @@
 #pragma once
 #include"../../cuda_includes.h"
 
-std::vector<int[2]> find_borders_launch();
+std::vector<thrust::pair<int, int>> find_borders_launch(int src_width, int src_height, cv::cuda::GpuMat& d_src);

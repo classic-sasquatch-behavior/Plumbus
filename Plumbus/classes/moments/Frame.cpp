@@ -124,15 +124,9 @@ void Frame::generate_superpixels(cv::Mat input) {
 	}
 	timer->end("wake up superpixels"); //A LITTLE SLOW BUT FAST ENOUGH
 
-	//timer->begin("initialize bins");
-	field()->initialize_bins();
-	//timer->end("initialize bins");
-
 	timer->begin("connect neighbors");
 	field()->connect_neighbors();
 	timer->end("connect neighbors");
-
-
 }
 
 void Frame::find_regions() {

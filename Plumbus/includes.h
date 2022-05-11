@@ -19,6 +19,9 @@
 #include <opencv2/ximgproc.hpp>
 #include<opencv2/tracking.hpp>
 
+//thrust 
+#include <thrust/pair.h>
+
 //std
 #include"standard_includes.h"
 
