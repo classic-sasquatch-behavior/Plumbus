@@ -17,9 +17,11 @@
 #include <thrust/host_vector.h>
 #include <thrust/device_vector.h>
 #include <thrust/unique.h>
+#include <thrust/sort.h>
 #include <thrust/execution_policy.h>
 #include <thrust/tuple.h>
 #include <thrust/pair.h>
+#include <thrust/distance.h>
 
 //std
 #include"standard_includes.h"

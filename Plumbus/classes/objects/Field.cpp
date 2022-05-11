@@ -31,7 +31,6 @@ void Field::calculate_average_region_colors() {
 	}
 }
 
-
 bool Field::histograms_similar(cv::Mat hist_a, cv::Mat hist_b, int max_threshold, int sum_threshold) {
 	bool similar = false;
 	cv::Mat hist_diff(hist_a.size(), hist_a.type());
@@ -186,7 +185,11 @@ void Field::refine_regions_naive(int threshold) {
 				}
 			}
 
+
 			merge_regions(smallest_neighbor, region); //smallest neighbor doesnt exist
+
+
+
 
 
 		
@@ -265,7 +268,7 @@ void Field::connect_neighbors() {
 		int first_label = pair.first;
 		int second_label = pair.second;
 
-		if (first_label != -1) {
+		if (first_label != second_label) {
 			Superpixel* focus = superpixel_at(first_label);
 			Superpixel* target = superpixel_at(second_label);
 

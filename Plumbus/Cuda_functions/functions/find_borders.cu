@@ -7,7 +7,7 @@
 
 
 
-__global__ void find_borders_kernel(int width, int height, uchar* d_src, int src_row_step, int* d_focus, int* d_target, int src_elm_size) { 
+__global__ void find_borders_kernel(int width, int height, int* d_src, int src_row_step, int* d_focus, int* d_target, int src_elm_size) { 
 
 	int focus_x = blockIdx.x;
 	int focus_y = blockIdx.y;
@@ -53,6 +53,10 @@ std::vector<thrust::pair<int, int>> find_borders_launch(int src_width, int src_h
 	thrust::device_vector<int> d_focus_result(src_width * src_height * 9);
 	thrust::device_vector<int> d_target_result(src_width * src_height * 9);
 
+
+	//int* d_src_data = (int*)d_src.data;
+
+
 	int* d_focus = thrust::raw_pointer_cast(d_focus_result.data());
 	int* d_target = thrust::raw_pointer_cast(d_target_result.data());
 
@@ -60,21 +64,39 @@ std::vector<thrust::pair<int, int>> find_borders_launch(int src_width, int src_h
 	dim3 threads_per_block = {9, 1, 1};
 	int substep_size = sizeof(int);
 
-	find_borders_kernel <<<num_blocks, threads_per_block>>> (src_width, src_height, d_src.data, d_src.step, d_focus, d_target, substep_size);
-
-
-	//SOLVED: USE TUPLES AND A ZIP ITERATOR, NOT PAIR AND WHATEVER THIS SHIT IS
 
 
 
-	thrust::device_vector<thrust::pair<int, int>> d_unique(d_focus_result.size());
 
+
+	int* d_src_data = (int*)d_src.data; //not the right way to make a pointer to data. 
+
+
+
+
+
+
+
+	find_borders_kernel <<<num_blocks, threads_per_block>>> (src_width, src_height, d_src_data, d_src.step, d_focus, d_target, substep_size);
+
+	cudaDeviceSynchronize();
+
+
+	int unique_length = d_focus_result.size();
+
+	thrust::device_vector<thrust::pair<int, int>> d_unique(unique_length); //length doesn't matter. fails at any length.
 
 	thrust::transform(d_focus_result.begin(), d_focus_result.end(), d_target_result.begin(), d_unique.begin(), make_pair() ); //seems to do its job just fine
 
-	thrust::unique(thrust::device, d_unique.begin(), d_unique.end());
+	thrust::sort(thrust::device, d_unique.begin(), d_unique.end());
 
-	std::vector<thrust::pair<int, int>> output(d_unique.size());
-	thrust::copy(d_unique.begin(), d_unique.end(), output.begin() );
+	thrust::device_vector<thrust::pair<int, int>>::iterator new_end  = thrust::unique(thrust::device, d_unique.begin(), d_unique.end());
+
+	int new_length = thrust::distance(d_unique.begin(), new_end);
+
+	std::vector<thrust::pair<int, int>> output(new_length);
+
+	thrust::copy(d_unique.begin(), d_unique.begin() + new_length, output.begin() );
+
 	return output;
 }
