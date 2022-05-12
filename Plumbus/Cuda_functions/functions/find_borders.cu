@@ -7,7 +7,7 @@
 
 
 
-__global__ void find_borders_kernel(int width, int height, int* d_src, int src_row_step, int* d_focus, int* d_target, int src_elm_size) { 
+__global__ void find_borders_kernel(int width, int height, const cv::cuda::PtrStep<int> d_src, int src_row_step, int* d_focus, int* d_target, int src_elm_size) { 
 
 	int focus_x = blockIdx.x;
 	int focus_y = blockIdx.y;
@@ -69,17 +69,21 @@ std::vector<thrust::pair<int, int>> find_borders_launch(int src_width, int src_h
 
 
 
-	int* d_src_data = (int*)d_src.data; //not the right way to make a pointer to data. 
+	//int* d_src_data = d_src.ptr<int>(0); //not the right way to make a pointer to data. 
+
+
+	const cv::cuda::GpuMat input = d_src;
 
 
 
 
+	find_borders_kernel <<<num_blocks, threads_per_block>>> (src_width, src_height, input, d_src.step, d_focus, d_target, substep_size);
 
-
-
-	find_borders_kernel <<<num_blocks, threads_per_block>>> (src_width, src_height, d_src_data, d_src.step, d_focus, d_target, substep_size);
+	cudaGetLastError();
 
 	cudaDeviceSynchronize();
+
+
 
 
 	int unique_length = d_focus_result.size();
