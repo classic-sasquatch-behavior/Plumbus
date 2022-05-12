@@ -17,10 +17,8 @@ CudaInterface::CudaInterface() {
 #pragma region GPU functions
 
 std::vector<thrust::pair<int, int>> CudaInterface::find_borders(cv::Mat labels) {
-	cv::cuda::GpuMat d_src;
-	d_src.upload(labels);
 
-	std::vector<thrust::pair<int, int>> h_out = find_borders_launch(labels.cols, labels.rows, d_src);
+	std::vector<thrust::pair<int, int>> h_out = find_borders_launch(labels.cols, labels.rows, labels);
 
 
 	return h_out;

@@ -194,7 +194,11 @@
       <CodeGeneration Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">compute_86,sm_86</CodeGeneration>
       <FastMath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</FastMath>
     </CudaCompile>
-    <CudaCompile Include="Cuda_functions\functions\find_borders.cu" />
+    <CudaCompile Include="Cuda_functions\functions\find_borders.cu">
+      <CodeGeneration Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">compute_86,sm_86</CodeGeneration>
+      <GenerateLineInfo Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</GenerateLineInfo>
+      <PtxAsOptionV Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</PtxAsOptionV>
+    </CudaCompile>
     <CudaCompile Include="Cuda_functions\functions\selective_blur.cu">
       <TargetMachinePlatform Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">64</TargetMachinePlatform>
       <CodeGeneration Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">compute_86,sm_86</CodeGeneration>

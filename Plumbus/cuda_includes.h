@@ -7,6 +7,7 @@
 #include<opencv2/highgui.hpp>
 #include<opencv2/dnn.hpp>
 #include<opencv2/core/cuda.hpp>
+#include <opencv2/cudev/ptr2d/glob.hpp>
 
 #include<device_launch_parameters.h>
 #include<cuda.h>
