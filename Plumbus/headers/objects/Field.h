@@ -14,7 +14,7 @@ public:
 	~Field();
 	void connect_neighbors();
 	void form_regions();
-	void connect_regions();
+	void associate_regions_by_histogram();
 	bool histograms_similar(cv::Mat hist_a, cv::Mat hist_b, int max_threshold, int sum_threshold);
 	void calculate_average_region_colors();
 	void prune_connections();

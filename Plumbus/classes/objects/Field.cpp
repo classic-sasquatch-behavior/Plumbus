@@ -72,8 +72,26 @@ void Field::prune_connections() {
 
 bool Field::histograms_similar(cv::Mat hist_a, cv::Mat hist_b, int max_threshold, int sum_threshold) { //make it normalize histograms to account for differently sized regions
 	bool similar = false;
+
+	cv::Mat hist_a_normalized;
+	cv::Mat hist_b_normalized;
+
+	cv::normalize(hist_a, hist_a_normalized, 100.0f, 0.0, cv::NORM_MINMAX);
+	cv::normalize(hist_b, hist_b_normalized, 100.0f, 0.0, cv::NORM_MINMAX);
+
+	hist_a = hist_a_normalized;
+	hist_b = hist_b_normalized;
+
+
+
+
+
 	cv::Mat hist_diff(hist_a.size(), hist_a.type());
 	cv::absdiff(hist_a, hist_b, hist_diff);
+	//std::cout << "hist diff channel values: " << std::endl;
+	//for (int i = 0; i < 256; i++) {
+	//	std::cout << i << ": " << hist_diff.at<cv::Vec3f>(i)[0] << ", " << hist_diff.at<cv::Vec3f>(i)[1] << ", " << hist_diff.at<cv::Vec3f>(i)[2] << std::endl;
+	//}
 
 	std::vector<cv::Mat> channels;
 	cv::split(hist_diff, channels);
@@ -84,6 +102,9 @@ bool Field::histograms_similar(cv::Mat hist_a, cv::Mat hist_b, int max_threshold
 	double min_diff;
 	double max_diff;
 	cv::minMaxIdx(hist_diff, &min_diff, &max_diff);
+
+	//std::cout << "max diff: " << max_diff << ", sum diff: " << sum_diff << std::endl;
+	//std::cout << std::endl;
 
 	if ((max_diff <= max_threshold)&&(sum_diff <= sum_threshold)) {
 		similar = true;
@@ -107,8 +128,16 @@ void Field::refine_region_sequence() {
 	init_region_histograms(); 
 	calculate_average_region_colors();
 
-	connect_regions();
+	associate_regions_by_histogram();
 	refresh_regions();
+
+	//I think we need to address regions listed as neighboring regions that no longer exist, being replaced by the newly embiggened region.
+
+	//associate_regions_by_histogram();
+	//refresh_regions();
+
+	//associate_regions_by_histogram();
+	//refresh_regions();
 
 	//prune_connections();
 	//refine_regions();
@@ -135,7 +164,7 @@ void Field::init_region_histograms() { //assumes each region only has one consti
 }
 
 //merges connected regions if the histograms are similar enough. start here.
-void Field::connect_regions() {
+void Field::associate_regions_by_histogram() {
 
 	for (Region* focus : all_regions()) {
 		if (focus->num_constituents() > 0) {
@@ -143,7 +172,9 @@ void Field::connect_regions() {
 				if (target->num_constituents() > 0) {
 					cv::Mat focus_hist = focus->histogram();
 					cv::Mat target_hist = target->histogram();
-					if (histograms_similar(focus_hist, target_hist, 180, 400)) { //make this function cooler
+					int focus_hist_type = focus_hist.type();
+					int target_hist_type = target_hist.type();
+					if (histograms_similar(focus_hist, target_hist, 80, 400)) { //identical histograms are slipping though
 						merge_regions(focus, target);
 					}
 				}
@@ -277,7 +308,7 @@ void Field::refine_regions_old() {
 }
 
 void Field::refine_region_sequence_naive() {
-	connect_regions();
+	associate_regions_by_histogram();
 	calculate_average_region_colors();
 	for (int i = 1; i <= 256; i *= 2) {
 		prune_connections();
