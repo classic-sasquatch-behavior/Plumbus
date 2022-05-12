@@ -103,7 +103,7 @@ void Frame::generate_superpixels(cv::Mat input) {
 	//FAST
 
 
-	//timer->begin("assign points to superpixels"); //A LITTLE SLOW BUT FAST ENOUGH
+	//timer->begin("assign points to superpixels"); //A LITTLE SLOW BUT FAST ENOUGH //why are you yelling
 	for (int row = 0; row < labels.rows; row++) {
 		for (int col = 0; col < labels.cols; col++) {
 			cv::Point new_point(col, row);
@@ -130,24 +130,12 @@ void Frame::generate_superpixels(cv::Mat input) {
 }
 
 void Frame::find_regions() {
-	//timer->begin("form regions");
+	timer->begin("form regions");
 	field()->form_regions();
-	//timer->end("form regions");
+	timer->end("form regions");
 
-	timer->begin("connect regions");
-	field()->connect_regions(); //VERY SLOW
-	timer->end("connect regions");
-
-	timer->begin("calculate average region colors");
-	field()->calculate_average_region_colors();
-	timer->end("calculate average region colors");
-
-
-
-	timer->begin("refine regions sequence"); //quite fast for what it is
-	//consider making regions know their region neighbors
-	field()->refine_region_sequence_naive();
-	//field()->refine_region_sequence();
+	timer->begin("refine regions sequence"); 
+	field()->refine_region_sequence();
 	timer->end("refine regions sequence");
 
 

@@ -24,7 +24,10 @@ public:
 	void refine_regions_naive(int threshold);
 	void refine_regions_old();
 	void merge_regions(Region* region_keep, Region* region_clear);
-	void refresh_region_list();
+	void refresh_regions();
+
+	void establish_region_neighbors();
+	void init_region_histograms();
 
 #pragma region get-set
 	inline Frame* frame() { return _frame; }

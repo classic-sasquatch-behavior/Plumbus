@@ -78,8 +78,6 @@ std::vector<thrust::pair<int, int>> find_borders_launch(int src_width, int src_h
 		exit(-1);
 	}
 
-
-
 	int unique_length = d_focus_result.size();
 
 	thrust::device_vector<thrust::pair<int, int>> d_unique(unique_length); //length doesn't matter. fails at any length.

@@ -21,7 +21,6 @@ void Superpixel::compute_histogram() {
 
 	std::vector<cv::Mat> hist_channels = { B_hist, G_hist, R_hist };
 
-	//timer->begin("compute histogram inner loop");
 	for (cv::Vec3b color : all_colors()) {
 		for (int channel = 0; channel < 3; channel++) {
 			hist_channels[channel].at<float>(color[channel])++;
@@ -30,25 +29,17 @@ void Superpixel::compute_histogram() {
 
 	float norm_factor = float(num_points()) / 100.0f;
 
-	//std::cout << "example color: "; for (int channel = 0; channel < 3; channel++) { std::cout << int(average_color()[channel]) << ", "; } std::cout << std::endl;
-	//std::cout << "example histogram: " << std::endl;
-
-
 	for (int channel = 0; channel < 3; channel++) {
-		//std::cout << std::endl;
-		//std::cout << "channel " << channel << std::endl;
+
 		for (int i = 0; i < 256; i++) {
 			hist_channels[channel].at<float>(i) /= norm_factor;
-			//std::cout << "value " << i << ": " << hist_channels[channel].at<float>(i) << std::endl;
+
 		}
 	}
-	//timer->end("compute histogram inner loop");
 
 	cv::Mat hist_out;
 	cv::merge(hist_channels, hist_out);
 	_histogram = hist_out;
-
-
 }
 
 void Superpixel::compute_mean_of_points() {
