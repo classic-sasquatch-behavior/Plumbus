@@ -151,6 +151,45 @@ bool Field::histograms_similar_BC(cv::Mat hist_a, cv::Mat hist_b, float BC_thres
 	return similar;
 }
 
+bool Field::histograms_similar_KL(cv::Mat hist_a, cv::Mat hist_b, float KL_threshold) { //Kullback–Leibler divergence
+	bool similar = false;
+
+	//prepare histograms
+	cv::normalize(hist_a, hist_a, 100.0f, 0.0, cv::NORM_MINMAX);
+	cv::normalize(hist_b, hist_b, 100.0f, 0.0, cv::NORM_MINMAX);
+
+	cv::GaussianBlur(hist_a, hist_a, cv::Size(1, 3), 0);
+	cv::GaussianBlur(hist_b, hist_b, cv::Size(1, 3), 0);
+
+	//calculate Kullback–Leibler divergence
+
+	float KL_distance = 0;
+
+	for (int col = 0; col < 256; col++) {
+		for (int channel = 0; channel < 3; channel++) {
+
+			float a_val = hist_a.at<cv::Vec3f>(col)[channel];
+			float b_val = hist_b.at<cv::Vec3f>(col)[channel];
+
+			float a_over_b = a_val / b_val;
+			float log_a_over_b = std::log(a_over_b);
+			float a_times_log = a_val * log_a_over_b;
+			KL_distance += a_times_log;
+		}
+	}
+
+	std::cout << "example KL distance: " << KL_distance;
+
+
+
+
+
+
+
+
+	return similar;
+}
+
 void Field::merge_regions(Region* region_keep, Region* region_clear) {
 
 	//absorb = merge and set
@@ -166,9 +205,17 @@ void Field::refine_region_sequence() {
 	init_region_histograms(); 
 	calculate_average_region_colors();
 
-	associate_regions_by_histogram(5.3);
+	associate_regions_by_histogram(5.35); //5.3 pretty good, but with just a little spillover
 	refresh_regions();
 
+	refine_regions();
+	refresh_regions();
+
+	//associate_regions_by_histogram(5.8);
+	//refresh_regions();
+
+	//refine_regions();
+	//refresh_regions();
 
 	//associate_regions_by_histogram(5.8);
 	//refresh_regions();
@@ -230,7 +277,7 @@ void Field::refresh_regions() {
 			new_regions.insert(region);
 			std::set<Region*> new_neighbors;
 			for (Region* neighbor : region->all_neighboring_regions()) {
-				if (neighbor->num_constituents() > 0) {
+				if (neighbor->num_constituents() > 0 && (neighbor->id() != region->id())) {
 					new_neighbors.insert(neighbor);
 				}
 			}
@@ -244,8 +291,16 @@ void Field::refresh_regions() {
 void Field::refine_regions() {
 
 
-
-
+	for (Region* region : all_regions()) {
+		if (region->num_constituents() != 0) {
+			if (region->num_neighbors() == 1) {
+				Region* neighbor = *region->all_neighboring_regions().begin();
+				if (neighbor->num_constituents() > 0) {
+					merge_regions(neighbor, region);
+				}
+			}
+		}
+	}
 }
 
 

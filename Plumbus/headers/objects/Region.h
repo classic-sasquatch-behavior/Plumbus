@@ -32,6 +32,7 @@ public:
 	inline void set_parent(Field* input) { _parent = input; }
 
 	inline int num_constituents() { return _constituents.size(); }
+	inline int num_neighbors() { return _neighboring_regions.size(); }
 #pragma endregion
 
 

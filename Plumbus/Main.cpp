@@ -56,7 +56,38 @@ Clip* clip;
 Timer* timer;
 ColorWheel* colorwheel;
 CudaInterface* GPU;
+class Superpixel;
+class Region;
 
+Region* selected_region = nullptr;
+
+void listen_for_mouse(int event, int x, int y, int flags, void* userdata)
+{
+	if (event == cv::EVENT_LBUTTONDOWN)
+	{
+		bool double_click = false;
+		int label = window->frame()->field()->labels().at<int>(y, x);
+		Superpixel* superpixel = window->frame()->field()->superpixel_at(label);
+		if (selected_region != nullptr) {
+			if (selected_region->id() == superpixel->region()->id()) {
+				double_click = true;
+			}
+		}
+		selected_region = superpixel->region();
+		std::cout << "region size: " << selected_region->num_constituents() << ", number of neighbors: " << selected_region->num_neighbors() << std::endl;
+		for (Region* neighbor : selected_region->all_neighboring_regions()) {
+			std::cout << "neighbor size: " << neighbor->num_constituents() << std::endl;
+		}
+		if (double_click) {
+			std::cout << "constituent means: " << std::endl;
+			for (Superpixel* constituent : selected_region->all_constituents()) {
+				std::cout << constituent->mean() << std::endl;
+			}
+		}
+		std::cout << std::endl;
+	}
+
+}
 
 bool listen(int input) {
 	switch (input) {
@@ -101,7 +132,7 @@ int main() {
 	window->update_window("regions", window->frame()->regions());
 	//window->update_window("edge_overlay", window->frame()->edge_overlay());
 
-	
+	cv::setMouseCallback("regions", listen_for_mouse, NULL);
 
 
 	while (listen(cv::waitKey())) {
