@@ -70,7 +70,7 @@ void Field::prune_connections() {
 
 
 
-bool Field::histograms_similar(cv::Mat hist_a, cv::Mat hist_b, int max_threshold, int sum_threshold) { //make it normalize histograms to account for differently sized regions
+bool Field::histograms_similar_naive(cv::Mat hist_a, cv::Mat hist_b, int max_threshold, int sum_threshold) { //make it normalize histograms to account for differently sized regions
 	bool similar = false;
 
 	cv::Mat hist_a_normalized;
@@ -81,7 +81,8 @@ bool Field::histograms_similar(cv::Mat hist_a, cv::Mat hist_b, int max_threshold
 
 	hist_a = hist_a_normalized;
 	hist_b = hist_b_normalized;
-
+	cv::GaussianBlur(hist_a, hist_a, cv::Size(1,3), 0);
+	cv::GaussianBlur(hist_b, hist_b, cv::Size(1,3), 0);
 
 
 
@@ -113,6 +114,43 @@ bool Field::histograms_similar(cv::Mat hist_a, cv::Mat hist_b, int max_threshold
 	return similar;
 }
 
+//appears to be really slow
+bool Field::histograms_similar_BC(cv::Mat hist_a, cv::Mat hist_b, float BC_threshold) { //Bhattacharyya distance
+	bool similar = false;
+
+	//prepare histograms
+	cv::normalize(hist_a, hist_a, 100.0f, 0.0, cv::NORM_MINMAX);
+	cv::normalize(hist_b, hist_b, 100.0f, 0.0, cv::NORM_MINMAX);
+	
+	cv::GaussianBlur(hist_a, hist_a, cv::Size(1, 3), 0);
+	cv::GaussianBlur(hist_b, hist_b, cv::Size(1, 3), 0);
+
+
+	//calculate Bhattacharyya distance
+	float BC_coefficient = 0;
+
+	for (int col = 0; col < 256; col++) {
+		for (int channel = 0; channel < 3; channel++) {
+			float a_val = hist_a.at<cv::Vec3f>(col)[channel];
+			float b_val = hist_b.at<cv::Vec3f>(col)[channel];
+
+			float product = a_val * b_val;
+			float root = sqrt(product);
+			BC_coefficient += root;
+		}
+	}
+
+	float BC_distance = std::log((1/BC_coefficient));
+
+	//std::cout << "BC coefficient: " << BC_coefficient << ", BC distance: " << BC_distance << std::endl;
+
+	if (BC_distance < -BC_threshold) {
+		similar = true;
+	}
+
+	return similar;
+}
+
 void Field::merge_regions(Region* region_keep, Region* region_clear) {
 
 	//absorb = merge and set
@@ -128,16 +166,13 @@ void Field::refine_region_sequence() {
 	init_region_histograms(); 
 	calculate_average_region_colors();
 
-	associate_regions_by_histogram();
+	associate_regions_by_histogram(5.3);
 	refresh_regions();
 
-	//I think we need to address regions listed as neighboring regions that no longer exist, being replaced by the newly embiggened region.
 
-	//associate_regions_by_histogram();
+	//associate_regions_by_histogram(5.8);
 	//refresh_regions();
 
-	//associate_regions_by_histogram();
-	//refresh_regions();
 
 	//prune_connections();
 	//refine_regions();
@@ -164,17 +199,21 @@ void Field::init_region_histograms() { //assumes each region only has one consti
 }
 
 //merges connected regions if the histograms are similar enough. start here.
-void Field::associate_regions_by_histogram() {
+void Field::associate_regions_by_histogram(float BC_thresh) {
 
+	//gotta figure out where in the cycle to remove dead regions (i.e. regions with num constituents = 0)
 	for (Region* focus : all_regions()) {
 		if (focus->num_constituents() > 0) {
 			for (Region* target : focus->all_neighboring_regions()) {
-				if (target->num_constituents() > 0) {
+				if ((target->num_constituents() > 0) && target->id() != focus->id()) {
 					cv::Mat focus_hist = focus->histogram();
 					cv::Mat target_hist = target->histogram();
 					int focus_hist_type = focus_hist.type();
 					int target_hist_type = target_hist.type();
-					if (histograms_similar(focus_hist, target_hist, 80, 400)) { //identical histograms are slipping though
+
+					//if (histograms_similar_naive(focus_hist, target_hist, 80, 1000))
+					if(histograms_similar_BC(focus_hist, target_hist, BC_thresh))
+					{
 						merge_regions(focus, target);
 					}
 				}
@@ -308,7 +347,7 @@ void Field::refine_regions_old() {
 }
 
 void Field::refine_region_sequence_naive() {
-	associate_regions_by_histogram();
+	associate_regions_by_histogram(5);
 	calculate_average_region_colors();
 	for (int i = 1; i <= 256; i *= 2) {
 		prune_connections();
