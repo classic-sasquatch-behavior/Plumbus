@@ -130,13 +130,21 @@ void Frame::generate_superpixels(cv::Mat input) {
 }
 
 void Frame::find_regions() {
-	timer->begin("form regions");
-	field()->form_regions();
-	timer->end("form regions");
+	timer->begin("affinity propagation");
+	field()->affinity_propagation();
+	timer->end("affinity propagation");
 
-	timer->begin("refine regions sequence"); 
-	field()->refine_region_sequence();
-	timer->end("refine regions sequence");
+
+
+
+
+	//timer->begin("form regions");
+	//field()->form_regions();
+	//timer->end("form regions");
+
+	//timer->begin("refine regions sequence"); 
+	//field()->refine_region_sequence();
+	//timer->end("refine regions sequence");
 
 
 }

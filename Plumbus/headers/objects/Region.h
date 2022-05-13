@@ -20,6 +20,7 @@ public:
 	inline Field* parent() { return _parent; }
 	inline cv::Vec3b average_color() { return _average_color; }
 	cv::Point id();
+	float id_hash();
 	cv::Mat histogram() { return _histogram; }
 	std::set<Region*> all_neighboring_regions() { return _neighboring_regions; }
 	Superpixel* constituent_at(int index) { return _constituents[index]; }

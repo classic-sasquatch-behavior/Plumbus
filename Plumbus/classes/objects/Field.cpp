@@ -40,7 +40,7 @@ void Field::prune_connections() {
 		for (Superpixel* target : focus->all_neighbors()) {
 			cv::Point target_id = target->region()->id();
 
-			if (focus_id != target_id) {
+			if (focus_id != target_id && target->region()->num_constituents() > 0) {
 				new_neighbors.push_back(target);
 			}
 		}
@@ -48,27 +48,7 @@ void Field::prune_connections() {
 	}
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+#pragma region refine_region_sequence
 
 bool Field::histograms_similar_naive(cv::Mat hist_a, cv::Mat hist_b, int max_threshold, int sum_threshold) { //make it normalize histograms to account for differently sized regions
 	bool similar = false;
@@ -205,16 +185,26 @@ void Field::refine_region_sequence() {
 	init_region_histograms(); 
 	calculate_average_region_colors();
 
-	associate_regions_by_histogram(5.35); //5.3 pretty good, but with just a little spillover
+	associate_regions_by_histogram(5.45); //5.3 pretty good, but with just a little spillover //5.45 less good but no spillover
 	refresh_regions();
 
-	refine_regions();
+	refine_floating_regions();
 	refresh_regions();
+
+	//prune_connections();
+	//refine_based_on_fitness(10);
+	//refresh_regions();
+
+	//refine_floating_regions();
+	//refresh_regions();
+
+	//refine_small_regions();
+
 
 	//associate_regions_by_histogram(5.8);
 	//refresh_regions();
 
-	//refine_regions();
+	//refine_floating_regions();
 	//refresh_regions();
 
 	//associate_regions_by_histogram(5.8);
@@ -225,6 +215,63 @@ void Field::refine_region_sequence() {
 	//refine_regions();
 	//refresh_regions();
 }
+
+void Field::refine_based_on_fitness(int size_threshold) {
+	for (Region* region : all_regions()) {
+		if (region->num_constituents() > 0 && region->num_constituents() <= size_threshold) {
+
+			std::unordered_map<float, int> region_weights;
+			for (Region* neighboring_region : region->all_neighboring_regions()) {
+				if (neighboring_region->num_constituents() > 0) {
+					region_weights[neighboring_region->id_hash()] = 0;
+				}
+			}
+
+			for (Superpixel* constituent : region->all_constituents()) {
+				for (Superpixel* neighbor : constituent->all_neighbors()) {
+					Region* neighboring_region = neighbor->region();
+
+					//find neighbor weights, where weight is how many superpixels are connected to that region
+					if (neighboring_region->num_constituents() > 0) {
+
+						float neighboring_region_id = neighboring_region->id_hash();
+						region_weights[neighboring_region_id]++;
+					}
+				}
+			}
+			
+			float most_fitness = -1.0f;
+			Region* most_fit_neighbor = nullptr;
+
+
+			for (Region* neighboring_region : region->all_neighboring_regions()) {
+				float neighbor_size = neighboring_region->num_constituents();
+				if (neighbor_size > 0) {
+					float neighboring_region_id = neighboring_region->id_hash();
+
+					float neighbor_weight = region_weights[neighboring_region_id];
+
+
+					float neighbor_fitness = neighbor_weight * (100 / neighbor_size);
+
+					if (neighbor_fitness > most_fitness) {
+						most_fitness = neighbor_fitness;
+						most_fit_neighbor = neighboring_region;
+					}
+				}
+			}
+
+			if (most_fit_neighbor != nullptr) {
+				merge_regions(most_fit_neighbor, region);
+			}
+
+
+		}
+	}
+
+
+}
+
 
 void Field::establish_region_neighbors() {
 
@@ -288,7 +335,7 @@ void Field::refresh_regions() {
 	set_regions(new_regions);
 }
 
-void Field::refine_regions() {
+void Field::refine_floating_regions() {
 
 
 	for (Region* region : all_regions()) {
@@ -303,23 +350,7 @@ void Field::refine_regions() {
 	}
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+#pragma endregion
 
 #pragma region refine regions naive
 
@@ -439,4 +470,102 @@ void Field::form_regions() {
 		index++;
 	}
 }
+
+
+
+
+
+
+
+
+void Field::affinity_propagation() { //this is gonna take a really, really long time like this lmao
+	
+	int N = num_superpixels();
+	cv::Size matrix_size(N,N);
+	cv::Mat similarity_matrix(matrix_size, CV_32SC1);
+
+	//1) data
+
+	for (int i = 0; i < N; i++) { //can cut the number of calculations in half because the matrix is symmetrical. just have to think about how to do that
+		Superpixel* focus = superpixel_at(i);
+		cv::Mat focus_hist = focus->histogram();
+		cv::normalize(focus_hist, focus_hist, 100);
+		cv::GaussianBlur(focus_hist, focus_hist, cv::Size(1,3), 0);
+
+		for (int j = 0; j < N; j++) {
+			Superpixel* target = superpixel_at(j);
+			cv::Mat target_hist = target->histogram();
+			cv::normalize(target_hist, target_hist, 100);
+			cv::GaussianBlur(target_hist, target_hist, cv::Size(1,3), 0);
+
+			int similarity_sum = 0;
+
+			for (int hist_val = 0; hist_val < 256; hist_val++) {
+				for (int hist_channel = 0; hist_channel < 3; hist_channel++) {
+
+					
+
+
+
+
+
+
+
+				}
+			}
+
+
+
+			similarity_matrix.at<int>(i, j) = similarity_sum;
+			//similarity_matrix.at<int>(j, i) = similarity_sum;
+
+
+
+
+
+
+		}
+
+
+
+
+	}
+
+
+
+
+
+
+	//2) similarity matrix 
+
+	//3) responsibility matrix 
+	cv::Mat responsibility_matrix(matrix_size, CV_32SC1);
+
+	//4) availibility matrix 
+	cv::Mat availibility_matrix(matrix_size, CV_32SC1);
+
+	//5) critereon matrix
+	cv::Mat critereon_matrix(matrix_size, CV_32SC1);
+
+	//6) exemplars
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+}
+
+
+
 

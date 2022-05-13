@@ -22,11 +22,15 @@ public:
 	void prune_connections();
 	void refine_region_sequence_naive();
 	void refine_region_sequence();
-	void refine_regions();
+	void refine_floating_regions();
+	void refine_small_regions();
 	void refine_regions_naive(int threshold);
 	void refine_regions_old();
 	void merge_regions(Region* region_keep, Region* region_clear);
 	void refresh_regions();
+	void refine_based_on_fitness(int size_threshold);
+
+	void affinity_propagation();
 
 	void establish_region_neighbors();
 	void init_region_histograms();

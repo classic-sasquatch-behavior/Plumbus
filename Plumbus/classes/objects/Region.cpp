@@ -15,6 +15,17 @@ Region::~Region() {
 
 cv::Point Region::id(){ return _constituents[0]->mean(); }
 
+float Region::id_hash() {
+	//biiig air quotes around "hash". only needs to be just good enough.
+	cv::Point point_id = id();
+	float elem_x = point_id.x;
+	float elem_y = point_id.y;
+	elem_x = (std::sqrt(elem_x) + 1) * 123;
+	elem_y = (std::sqrt(elem_y) + 1) * 123;
+	float hash = std::sqrt((elem_x * elem_y) + 1);
+	return hash;
+}
+
 
 void Region::absorb_histogram(cv::Mat input_histogram) {
 
