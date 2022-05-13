@@ -484,51 +484,58 @@ void Field::affinity_propagation() { //this is gonna take a really, really long 
 	cv::Size matrix_size(N,N);
 	cv::Mat similarity_matrix(matrix_size, CV_32SC1);
 
-	//1) data
+	int lowest_val = INF;
+
+	//1) compare data to form similarity matrix
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 	for (int i = 0; i < N; i++) { //can cut the number of calculations in half because the matrix is symmetrical. just have to think about how to do that
 		Superpixel* focus = superpixel_at(i);
 		cv::Mat focus_hist = focus->histogram();
 		cv::normalize(focus_hist, focus_hist, 100);
-		cv::GaussianBlur(focus_hist, focus_hist, cv::Size(1,3), 0);
+		cv::GaussianBlur(focus_hist, focus_hist, cv::Size(1,3), 0); //to blur or not to blur?
 
 		for (int j = 0; j < N; j++) {
+			std::cout << i << " " << j << std::endl;
 			Superpixel* target = superpixel_at(j);
 			cv::Mat target_hist = target->histogram();
 			cv::normalize(target_hist, target_hist, 100);
-			cv::GaussianBlur(target_hist, target_hist, cv::Size(1,3), 0);
+			cv::GaussianBlur(target_hist, target_hist, cv::Size(1,3), 0); //maybe take out blur
 
-			int similarity_sum = 0;
+			float similarity_sum = 0;
 
 			for (int hist_val = 0; hist_val < 256; hist_val++) {
+				cv::Vec3f focus_channels = focus_hist.at<cv::Vec3f>(hist_val);
+				cv::Vec3f target_channels = target_hist.at<cv::Vec3f>(hist_val);
+
 				for (int hist_channel = 0; hist_channel < 3; hist_channel++) {
+					float focus_val = focus_channels[hist_channel];
+					float target_val = target_channels[hist_channel];
 
-					
-
-
-
-
-
-
-
+					float val_difference = focus_val - target_val;
+					float val_squared = std::powf(val_difference, 2);
+					similarity_sum += val_squared;
 				}
 			}
+			similarity_matrix.at<int>(i, j) = -(int)round(similarity_sum);
+			//similarity_matrix.at<int>(j, i) = -(int)round(similarity_sum);
 
-
-
-			similarity_matrix.at<int>(i, j) = similarity_sum;
-			//similarity_matrix.at<int>(j, i) = similarity_sum;
-
-
-
-
-
-
+			if (similarity_sum < lowest_val) {
+				lowest_val = similarity_sum;
+			}
 		}
-
-
-
-
 	}
 
 
@@ -536,32 +543,58 @@ void Field::affinity_propagation() { //this is gonna take a really, really long 
 
 
 
-	//2) similarity matrix 
 
-	//3) responsibility matrix 
+
+
+
+
+
+
+
+
+
+
+	//print statement for visual check
+	std::cout << "similarity matrix before diagonal operation" << std::endl;
+	util->print_mat(similarity_matrix, 10);
+
+
+	//set diagonal to lowest_val
+	cv::Mat similarity_matrix_diagonal = similarity_matrix.diag(0);
+	similarity_matrix_diagonal.setTo(lowest_val);
+
+	std::cout << "similarity matrix after diagonal operation" << std::endl;
+	util->print_mat(similarity_matrix, 10);
+
+
+
+	//2) examine similarity matrix to form responsibility matrix
 	cv::Mat responsibility_matrix(matrix_size, CV_32SC1);
 
-	//4) availibility matrix 
+
+
+
+
+
+
+
+
+
+
+
+
+	//3) examine responsibility matrix to form availibility matrix
 	cv::Mat availibility_matrix(matrix_size, CV_32SC1);
 
-	//5) critereon matrix
+
+
+	//4) add responsibility matrix and availibility matrix to form critereon matrix 
 	cv::Mat critereon_matrix(matrix_size, CV_32SC1);
 
-	//6) exemplars
+	//5) examine critereon matrix to identify exemplars
 
 
-
-
-
-
-
-
-
-
-
-
-
-
+	//6) create regions based on exemplar clusters
 
 
 }

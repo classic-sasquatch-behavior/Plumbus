@@ -56,6 +56,7 @@ Clip* clip;
 Timer* timer;
 ColorWheel* colorwheel;
 CudaInterface* GPU;
+Util* util;
 class Superpixel;
 class Region;
 
@@ -117,6 +118,7 @@ int main() {
 	timer = new Timer();
 	colorwheel = new ColorWheel();
 	GPU = new CudaInterface();
+	util = new Util();
 
 	timer->begin("init clip");
 	clip = new Clip(RES_PATH);

@@ -33,12 +33,13 @@
 #include "headers/util/Link.h"
 #include"headers/util/Timer.h"
 #include"headers//util/Window.h"
+#include"headers/util/Util.h"
 
 #include"Cuda_functions/headers/CudaInterface.h"
 
 extern Timer* timer;
 extern ColorWheel* colorwheel;
 extern CudaInterface* GPU;
-
+extern Util* util;
 
 

@@ -72,6 +72,9 @@
     <ClCompile Include="classes\objects\Region.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="classes\util\Util.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\000000690.png">
@@ -175,6 +178,9 @@
     </ClInclude>
     <ClInclude Include="Cuda_functions\headers\find_borders.cuh" />
     <ClInclude Include="standard_includes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="headers\util\Util.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
