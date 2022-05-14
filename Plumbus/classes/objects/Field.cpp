@@ -495,41 +495,57 @@ void Field::affinity_propagation() { //this is gonna take a really, really long 
 
 
 
-
-
-
-
-
+	std::vector<cv::Mat> prepared_hists;
 	for (int i = 0; i < N; i++) {
-		Superpixel* focus = superpixel_at(i);
-		cv::Mat focus_hist = focus->histogram();
-		cv::normalize(focus_hist, focus_hist, 100.0f);
-		cv::GaussianBlur(focus_hist, focus_hist, cv::Size(1, 3), 0);
-
-		for (int j = 0; j < N; j++) {
-			std::cout << i << " " << j << std::endl;
-			Superpixel* target = superpixel_at(j);
-			cv::Mat target_hist = target->histogram();
-			cv::normalize(target_hist, target_hist, 100.0f);
-			cv::GaussianBlur(target_hist, target_hist, cv::Size(1, 3), 0);
-				
-			cv::Mat difference_hist(focus_hist.size(), focus_hist.type());
-			cv::subtract(focus_hist, target_hist, difference_hist);
-
-			cv::multiply(difference_hist, difference_hist, difference_hist);
-
-			float similarity = 0;
-
-			cv::Scalar channel_sums = cv::sum(difference_hist);
-			similarity = -(channel_sums[0] + channel_sums[1] + channel_sums[2]);
-			
-			similarity_matrix.at<int>(i, j) = (int)round(similarity);
-
-			if (similarity < lowest_val) {
-				lowest_val = similarity;
-			}
-		}
+		cv::Mat hist = superpixel_at(i)->histogram();
+		cv::normalize(hist, hist, 100.0f);
+		cv::GaussianBlur(hist, hist, cv::Size(1, 3), 0);
+		prepared_hists.push_back(hist);
 	}
+
+	GPU->form_similarity_matrix(prepared_hists, similarity_matrix, N);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	//much faster than the previous attempt but still wayyyyyyyyy to slow
+	 
+	//cv::Mat difference_hist(prepared_hists[0].size(), prepared_hists[0].type());
+	//for (int i = 0; i < N; i++) {
+	//	std::cout << i << std::endl;
+	//	cv::Mat focus_hist = prepared_hists[i];
+
+
+	//	for (int j = i + 1; j < N; j++) {
+	//		cv::Mat target_hist = prepared_hists[j];
+
+	//		cv::subtract(focus_hist, target_hist, difference_hist);
+	//		cv::multiply(difference_hist, difference_hist, difference_hist);
+
+	//		float similarity = 0;
+
+	//		cv::Scalar channel_sums = cv::sum(difference_hist);
+	//		similarity = -(channel_sums[0] + channel_sums[1] + channel_sums[2]);
+	//		
+	//		similarity_matrix.at<int>(i, j) = (int)round(similarity);
+	//		similarity_matrix.at<int>(j, i) = (int)round(similarity);
+
+	//		if (similarity < lowest_val) {
+	//			lowest_val = similarity;
+	//		}
+	//	}
+	//}
 
 
 

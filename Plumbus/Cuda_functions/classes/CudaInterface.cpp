@@ -5,6 +5,7 @@
 #include"../headers/find_borders.cuh"
 #include"../headers/matrix_operations.cuh"
 #include"../../config.h"
+#include"../headers/form_similarity_matrix.cuh"
 
 
 #pragma region constructors
@@ -73,6 +74,37 @@ cv::Mat CudaInterface::fast_selective_blur(cv::Mat input, int steps, int thresho
 
 	return output;
 }
+
+
+
+
+void CudaInterface::form_similarity_matrix(std::vector<cv::Mat> input_histograms, cv::Mat &output_similarity_matrix, int N) {
+	cv::Mat concatenated_histograms = input_histograms[0];
+
+	for (int i = 1; i < input_histograms.size(); i++) {
+		cv::Mat mat_array[2] = { concatenated_histograms, input_histograms[i] };
+		cv::hconcat(mat_array, 2, concatenated_histograms);
+	}
+
+	cv::cuda::GpuMat source(concatenated_histograms.size(), concatenated_histograms.type());
+	cv::cuda::GpuMat output(output_similarity_matrix.size(), output_similarity_matrix.type());
+
+	source.upload(concatenated_histograms);
+	output.upload(output_similarity_matrix);
+
+	form_similarity_matrix_launch(source, output, N);
+
+
+
+
+
+
+
+
+
+}
+
+
 
 #pragma endregion
 

@@ -19,7 +19,7 @@ void Superpixel::compute_histogram() {
 	cv::Mat G_hist(cv::Size(256, 1), CV_32FC1, cv::Scalar{ 0 });
 	cv::Mat R_hist(cv::Size(256, 1), CV_32FC1, cv::Scalar{ 0 });
 
-	std::vector<cv::Mat> hist_channels = { B_hist, G_hist, R_hist };
+	cv::Mat hist_channels[3] = { B_hist, G_hist, R_hist };
 
 	for (cv::Vec3b color : all_colors()) {
 		for (int channel = 0; channel < 3; channel++) {
@@ -37,7 +37,7 @@ void Superpixel::compute_histogram() {
 		}
 	}
 
-	cv::Mat hist_out;
+	cv::Mat hist_out(B_hist.size(), B_hist.type());
 	cv::vconcat(hist_channels, 3, hist_out);
 
 	_histogram = hist_out;
