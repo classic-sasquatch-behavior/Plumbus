@@ -16,18 +16,15 @@
 
 
 
-cv::Mat add_launch(cv::Mat input_a, cv::Mat input_b);
+void add_launch(cv::Mat &input_a, cv::Mat &input_b, cv::Mat &output);
 
-cv::Mat subtract_launch(cv::Mat input_a, cv::Mat input_b);
+void subtract_launch(cv::Mat &input_a, cv::Mat &input_b, cv::Mat &output);
 
-cv::Mat multiply_launch(cv::Mat input_a, cv::Mat input_b);
+void multiply_launch(cv::Mat &input_a, cv::Mat &input_b, cv::Mat &output);
 
-template<typename AnyType>
-AnyType sum_launch(cv::Mat input_a, cv::Mat input_b) {
-	AnyType result;
-
-
-
-}
-
+//template<typename AnyType>
+//void sum_launch(cv::Mat &input_a, cv::Mat &input_b, AnyType &output) {
+//	
+//}
+//
 

@@ -4,80 +4,117 @@
 
 
 
+__global__ void add_kernel(cv::cuda::PtrStepSzf A, cv::cuda::PtrStepSzf B, cv::cuda::PtrStepSzf Out) {
 
+	int x = threadIdx.x;
+	int y = threadIdx.y;
 
+	int input_width = A.cols;
+	int input_height = A.rows;
+	if (x > input_width || y > input_height) { return; }
 
-
-
-
-
-__global__ void add_kernel() {
-
-
-
-
-
-
-
-
+	Out(x, y) = A(x, y) + B(x, y);
 }
 
-__global__ void subtract_kernel() {
+__global__ void subtract_kernel(cv::cuda::PtrStepSzf A, cv::cuda::PtrStepSzf B, cv::cuda::PtrStepSzf Out) {
 
+	int x = threadIdx.x;
+	int y = threadIdx.y;
 
+	int input_width = A.cols;
+	int input_height = A.rows;
+	if (x > input_width || y > input_height) { return; }
 
-
-
-
-
-
+	Out(x, y) = A(x, y) - B(x, y);
 }
 
-__global__ void multiply_kernel() {
+__global__ void multiply_kernel(cv::cuda::PtrStepSzf A, cv::cuda::PtrStepSzf B, cv::cuda::PtrStepSzf Out) {
 
+	int x = threadIdx.x;
+	int y = threadIdx.y;
 
+	int input_width = A.cols;
+	int input_height = A.rows;
+	if (x > input_width || y > input_height) { return; }
 
-
-
-
-
-
-
+	Out(x, y) = A(x, y) * B(x, y);
 }
 
 
-template<typename AnyType>
-__global__ void sum_kernel() {
+//do this last, it's gonna be complicated as fuck
+//template<typename AnyType>
+//__global__ void sum_kernel() {
+//	
+//
+//
+//
+//
+//
+//}
+
+
+
+
+
+//TODO: finish installing CUDA intellisense 
+
+void add_launch(cv::Mat &input_a, cv::Mat &input_b, cv::Mat &output) {
+	cv::cuda::GpuMat d_input_a;
+	cv::cuda::GpuMat d_input_b;
+	cv::cuda::GpuMat d_output;
+
+	d_input_a.upload(input_a);
+	d_input_b.upload(input_b);
+	d_output.upload(output);
+
+	dim3 num_blocks = {(input_a.cols/32) + 1, 1, 1};
+	dim3 threads_per_block = {32, 3, 1};
+
+	add_kernel <<<num_blocks, threads_per_block>>>();
+
+	d_input_a.download(input_a);
+	d_input_b.download(input_b);
+	d_output.download(output);
 
 }
 
+void subtract_launch(cv::Mat &input_a, cv::Mat &input_b, cv::Mat &output) {
+	cv::cuda::GpuMat d_input_a;
+	cv::cuda::GpuMat d_input_b;
+	cv::cuda::GpuMat d_output;
 
+	d_input_a.upload(input_a);
+	d_input_b.upload(input_b);
+	d_output.upload(output);
 
+	dim3 num_blocks = { (input_a.cols / 32) + 1, 1, 1 };
+	dim3 threads_per_block = { 32, 3, 1 };
 
+	subtract_kernel <<<num_blocks, threads_per_block >>>();
 
+	d_input_a.download(input_a);
+	d_input_b.download(input_b);
+	d_output.download(output);
 
-
-cv::Mat add_launch(cv::Mat input_a, cv::Mat input_b) {
-	cv::Mat output;
-
-
-
-	return output;
 }
 
-cv::Mat subtract_launch(cv::Mat input_a, cv::Mat input_b) {
-	cv::Mat output;
+void multiply_launch(cv::Mat &input_a, cv::Mat &input_b, cv::Mat &output) {
+	cv::cuda::GpuMat d_input_a;
+	cv::cuda::GpuMat d_input_b;
+	cv::cuda::GpuMat d_output(input_b.size(), input_b.type());
 
+	d_input_a.upload(input_a);
+	d_input_b.upload(input_b);
+	d_output.upload(output);
 
+	dim3 num_blocks = { (input_a.cols / 32) + 1, 1, 1 };
+	dim3 threads_per_block = { 32, 3, 1 };
 
-	return output;
-}
+	multiply_kernel<<<num_blocks, threads_per_block >>>();
 
-cv::Mat multiply_launch(cv::Mat input_a, cv::Mat input_b) {
-	cv::Mat output;
+	d_input_a.download(input_a);
+	d_input_b.download(input_b);
+	d_output.download(output);
 
-
-
-	return output;
 }
 

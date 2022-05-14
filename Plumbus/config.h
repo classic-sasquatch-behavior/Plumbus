@@ -5,7 +5,7 @@
 //const bool F = false;
 //
 
-#define INF = 2147483647;
+constexpr int INF = 2147483647;
 #define IDX2C(i,j,ld) (((j)*(ld))+(i))
 #pragma endregion
 

@@ -38,7 +38,8 @@ void Superpixel::compute_histogram() {
 	}
 
 	cv::Mat hist_out;
-	cv::merge(hist_channels, hist_out);
+	cv::vconcat(hist_channels, 3, hist_out);
+
 	_histogram = hist_out;
 }
 

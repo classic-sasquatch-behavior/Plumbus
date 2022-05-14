@@ -86,16 +86,16 @@ cv::Mat CudaInterface::fast_selective_blur(cv::Mat input, int steps, int thresho
 
 #pragma region matrix operations
 
-void CudaInterface::add(cv::Mat input_a, cv::Mat input_b, cv::Mat &output) {
-	output = add_launch(input_a, input_b);
+void CudaInterface::add(cv::Mat &input_a, cv::Mat &input_b, cv::Mat &output) {
+	add_launch(input_a, input_b, output);
 }
 
-void CudaInterface::subtract(cv::Mat input_a, cv::Mat input_b, cv::Mat &output) {
-	output = subtract_launch(input_a, input_b);
+void CudaInterface::subtract(cv::Mat &input_a, cv::Mat &input_b, cv::Mat &output) {
+	subtract_launch(input_a, input_b, output);
 }
 
-void CudaInterface::multiply(cv::Mat input_a, cv::Mat input_b, cv::Mat &output) {
-	output = multiply_launch(input_a, input_b);
+void CudaInterface::multiply(cv::Mat &input_a, cv::Mat &input_b, cv::Mat &output) {
+	multiply_launch(input_a, input_b, output);
 }
 
 
