@@ -6,19 +6,13 @@
 
 
 
-__device__ void subtract_histograms(cv::cuda::PtrStepSzf &source, cv::cuda::PtrStepSzf &scratch) {
-
-}
-
-
-
-
-
-
-
-__device__ void multiply_histograms(cv::cuda::PtrStepSzf& source, cv::cuda::PtrStepSzf& scratch) {
-
-}
+//__device__ void subtract_histograms(cv::cuda::PtrStepSzf &source, cv::cuda::PtrStepSzf &scratch) {
+//
+//}
+//
+//__device__ void multiply_histograms(cv::cuda::PtrStepSzf& source, cv::cuda::PtrStepSzf& scratch) {
+//
+//}
 
 
 
@@ -29,7 +23,7 @@ __device__ void multiply_histograms(cv::cuda::PtrStepSzf& source, cv::cuda::PtrS
 
 
 //first attempt: the kernel sums all 256*3 elements
-__global__ void form_similarity_matrix_kernel(cv::cuda::PtrStepSzf source, cv::cuda::PtrStepSzf scratch, cv::cuda::PtrStepSzi output, int N) {
+__global__ void form_similarity_matrix_kernel(cv::cuda::PtrStepSzf source, cv::cuda::PtrStepSzi output, int N) {
 	int output_x = (blockIdx.x * blockDim.x) + threadIdx.x;
 	int output_y = (blockIdx.y * blockDim.y) + threadIdx.y;
 
@@ -39,22 +33,24 @@ __global__ void form_similarity_matrix_kernel(cv::cuda::PtrStepSzf source, cv::c
 	if (output_x > N || output_y > N || source_A_index > N || source_B_index > N) { return; }
 
 
+	int A_start_x = 3* source_A_index;
+	int B_start_x = 3* source_B_index;
 
+	float sum = 0;
 
+	for (int x_itr = 0; x_itr < 3; x_itr++) {
+		int A_x = x_itr + A_start_x;
+		int B_x = x_itr + B_start_x;
 
+		for (int y = 0; y < 256; y++) {
+			float difference = source(y, A_x) - source(y, B_x);
+			float square = difference*difference;
+			sum += square;
+		}
+	}
 
-
-
-
-
-
-
-
-
-
-
-
-
+	int similarity = -(int)round(sum);
+	output(output_y, output_x) = similarity;
 }
 
 
@@ -81,13 +77,13 @@ void form_similarity_matrix_launch(cv::cuda::GpuMat& source, cv::cuda::GpuMat& o
 	//((N - N%32) / 32) + 1
 	int num_blocks_xy = ((N - (N % 32)) / 32) + 1;
 
-	dim3 num_blocks = {num_blocks_xy, num_blocks_xy, 1};
+	dim3 num_blocks = {(unsigned int)num_blocks_xy, (unsigned int)num_blocks_xy, 1};
 	dim3 threads_per_block = {32, 32, 1};
 
-	cv::cuda::GpuMat scratch(source.size(), source.type());
+	//cv::cuda::GpuMat scratch(cv::Size(source.rows / 2, source.cols), source.type());
 
 
-	form_similarity_matrix_kernel <<<num_blocks, threads_per_block>>> (source, scratch, output, N);
+	form_similarity_matrix_kernel <<<num_blocks, threads_per_block>>> (source, output, N);
 	cudaDeviceSynchronize();
 
 

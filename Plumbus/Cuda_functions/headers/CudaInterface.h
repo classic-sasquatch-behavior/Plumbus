@@ -17,7 +17,7 @@ public:
 
 	std::vector<thrust::pair<int, int>> find_borders(cv::Mat labels);
 	
-	void form_similarity_matrix(std::vector<cv::Mat> input_histograms, cv::Mat &similarity_matrix, int N);
+	void form_similarity_matrix(std::vector<cv::Mat> &input_histograms, cv::Mat &similarity_matrix, int N);
 
 
 #pragma region matrix operations

@@ -15,9 +15,9 @@ Superpixel::~Superpixel() {
 
 
 void Superpixel::compute_histogram() {
-	cv::Mat B_hist(cv::Size(256, 1), CV_32FC1, cv::Scalar{ 0 });
-	cv::Mat G_hist(cv::Size(256, 1), CV_32FC1, cv::Scalar{ 0 });
-	cv::Mat R_hist(cv::Size(256, 1), CV_32FC1, cv::Scalar{ 0 });
+	cv::Mat B_hist(cv::Size(1, 256), CV_32FC1, cv::Scalar{ 0 });
+	cv::Mat G_hist(cv::Size(1, 256), CV_32FC1, cv::Scalar{ 0 });
+	cv::Mat R_hist(cv::Size(1, 256), CV_32FC1, cv::Scalar{ 0 });
 
 	cv::Mat hist_channels[3] = { B_hist, G_hist, R_hist };
 
@@ -37,8 +37,8 @@ void Superpixel::compute_histogram() {
 		}
 	}
 
-	cv::Mat hist_out(B_hist.size(), B_hist.type());
-	cv::vconcat(hist_channels, 3, hist_out);
+	cv::Mat hist_out(cv::Size(3, 256), B_hist.type());
+	cv::hconcat(hist_channels, 3, hist_out);
 
 	_histogram = hist_out;
 }

@@ -78,13 +78,12 @@ cv::Mat CudaInterface::fast_selective_blur(cv::Mat input, int steps, int thresho
 
 
 
-void CudaInterface::form_similarity_matrix(std::vector<cv::Mat> input_histograms, cv::Mat &output_similarity_matrix, int N) {
-	cv::Mat concatenated_histograms = input_histograms[0];
+void CudaInterface::form_similarity_matrix(std::vector<cv::Mat> &input_histograms, cv::Mat &output_similarity_matrix, int N) {
 
-	for (int i = 1; i < input_histograms.size(); i++) {
-		cv::Mat mat_array[2] = { concatenated_histograms, input_histograms[i] };
-		cv::hconcat(mat_array, 2, concatenated_histograms);
-	}
+	std::cout << " concatenating histograms..." << std::endl;
+	cv::Mat concatenated_histograms (cv::Size(N*3, 256), input_histograms[0].type() );
+	cv::Mat* mat_array = input_histograms.data();
+	cv::hconcat(mat_array, input_histograms.size(), concatenated_histograms);
 
 	cv::cuda::GpuMat source(concatenated_histograms.size(), concatenated_histograms.type());
 	cv::cuda::GpuMat output(output_similarity_matrix.size(), output_similarity_matrix.type());
@@ -92,16 +91,12 @@ void CudaInterface::form_similarity_matrix(std::vector<cv::Mat> input_histograms
 	source.upload(concatenated_histograms);
 	output.upload(output_similarity_matrix);
 
+	std::cout << "launching similarity matrix..." << std::endl;
 	form_similarity_matrix_launch(source, output, N);
 
+	output.download(output_similarity_matrix);
 
-
-
-
-
-
-
-
+	//cudaDeviceReset();
 }
 
 

@@ -484,17 +484,8 @@ void Field::affinity_propagation() { //this is gonna take a really, really long 
 	cv::Size matrix_size(N,N);
 	cv::Mat similarity_matrix(matrix_size, CV_32SC1);
 
-	int lowest_val = INF;
-
 	//form similarity matrix
-	//to speed up: use sparse mats, use gpu gaussian blur, potentially put stuff in a cuda kernel, impliment caching
-
-
-
-
-
-
-
+	//to speed up: use sparse mats, use gpu gaussian blur
 	std::vector<cv::Mat> prepared_hists;
 	for (int i = 0; i < N; i++) {
 		cv::Mat hist = superpixel_at(i)->histogram();
@@ -505,79 +496,16 @@ void Field::affinity_propagation() { //this is gonna take a really, really long 
 
 	GPU->form_similarity_matrix(prepared_hists, similarity_matrix, N);
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-	//much faster than the previous attempt but still wayyyyyyyyy to slow
-	 
-	//cv::Mat difference_hist(prepared_hists[0].size(), prepared_hists[0].type());
-	//for (int i = 0; i < N; i++) {
-	//	std::cout << i << std::endl;
-	//	cv::Mat focus_hist = prepared_hists[i];
-
-
-	//	for (int j = i + 1; j < N; j++) {
-	//		cv::Mat target_hist = prepared_hists[j];
-
-	//		cv::subtract(focus_hist, target_hist, difference_hist);
-	//		cv::multiply(difference_hist, difference_hist, difference_hist);
-
-	//		float similarity = 0;
-
-	//		cv::Scalar channel_sums = cv::sum(difference_hist);
-	//		similarity = -(channel_sums[0] + channel_sums[1] + channel_sums[2]);
-	//		
-	//		similarity_matrix.at<int>(i, j) = (int)round(similarity);
-	//		similarity_matrix.at<int>(j, i) = (int)round(similarity);
-
-	//		if (similarity < lowest_val) {
-	//			lowest_val = similarity;
-	//		}
-	//	}
-	//}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-	//print statement for visual check
-	std::cout << "similarity matrix before diagonal operation" << std::endl;
-	util->print_mat(similarity_matrix, 10);
-
-
 	//set diagonal to lowest_val
 	cv::Mat similarity_matrix_diagonal = similarity_matrix.diag(0);
-	similarity_matrix_diagonal.setTo(lowest_val);
-
-	std::cout << "similarity matrix after diagonal operation" << std::endl;
-	util->print_mat(similarity_matrix, 10);
-
-
+	double lowest_val;
+	cv::minMaxIdx(similarity_matrix, &lowest_val);
+	similarity_matrix_diagonal.setTo((int)lowest_val);
 
 	//2) examine similarity matrix to form responsibility matrix
 	cv::Mat responsibility_matrix(matrix_size, CV_32SC1);
 
-
+	
 
 
 
