@@ -183,10 +183,12 @@
     <ClInclude Include="headers\util\Util.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Cuda_functions\headers\matrix_operations.cuh" />
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="Cuda_functions\functions\selective_blur.cu" />
     <CudaCompile Include="Cuda_functions\functions\fast_selective_blur.cu" />
     <CudaCompile Include="Cuda_functions\functions\find_borders.cu" />
+    <CudaCompile Include="Cuda_functions\functions\matrix_operations.cu" />
   </ItemGroup>
 </Project>

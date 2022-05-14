@@ -25,4 +25,7 @@
 //std
 #include"standard_includes.h"
 
+//cublas 
+#include <cublas_v2.h>
+
 namespace fs = std::filesystem;

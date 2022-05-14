@@ -200,6 +200,7 @@
       <GenerateLineInfo Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</GenerateLineInfo>
       <PtxAsOptionV Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</PtxAsOptionV>
     </CudaCompile>
+    <CudaCompile Include="Cuda_functions\functions\matrix_operations.cu" />
     <CudaCompile Include="Cuda_functions\functions\selective_blur.cu">
       <TargetMachinePlatform Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">64</TargetMachinePlatform>
       <CodeGeneration Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">compute_86,sm_86</CodeGeneration>
@@ -218,6 +219,7 @@
     <ClInclude Include="config.h" />
     <ClInclude Include="Cuda_functions\headers\fast_selective_blur.cuh" />
     <ClInclude Include="Cuda_functions\headers\find_borders.cuh" />
+    <ClInclude Include="Cuda_functions\headers\matrix_operations.cuh" />
     <ClInclude Include="Cuda_functions\headers\selective_blur.h" />
     <ClInclude Include="headers\events\Activity.h" />
     <ClInclude Include="headers\moments\Antiframe.h" />

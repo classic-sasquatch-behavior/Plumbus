@@ -3,6 +3,7 @@
 #include"../headers/selective_blur.h"
 #include"../headers/fast_selective_blur.cuh"
 #include"../headers/find_borders.cuh"
+#include"../headers/matrix_operations.cuh"
 #include"../../config.h"
 
 
@@ -73,6 +74,36 @@ cv::Mat CudaInterface::fast_selective_blur(cv::Mat input, int steps, int thresho
 	return output;
 }
 
-
 #pragma endregion
 
+
+
+
+
+
+
+
+
+#pragma region matrix operations
+
+void CudaInterface::add(cv::Mat input_a, cv::Mat input_b, cv::Mat &output) {
+	output = add_launch(input_a, input_b);
+}
+
+void CudaInterface::subtract(cv::Mat input_a, cv::Mat input_b, cv::Mat &output) {
+	output = subtract_launch(input_a, input_b);
+}
+
+void CudaInterface::multiply(cv::Mat input_a, cv::Mat input_b, cv::Mat &output) {
+	output = multiply_launch(input_a, input_b);
+}
+
+
+
+
+
+
+
+
+
+#pragma endregion
