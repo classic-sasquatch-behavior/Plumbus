@@ -548,9 +548,13 @@ void Field::affinity_propagation() { //this is gonna take a really, really long 
 	for (auto cluster : clusters) {
 		Region* new_region = new Region(this);
 		new_region->set_constituents(cluster.second);
+		for(Superpixel* constituent : cluster.second){
+			constituent->set_region(new_region);
+		}
 		add_region(new_region);
 	}
-
+	calculate_average_region_colors();
+ 
 
 
 
