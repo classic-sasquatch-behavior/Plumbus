@@ -1,12 +1,7 @@
 #include"../../cuda_includes.h"
+#include"cuda_function_includes.h"
 #include"../../classes.h"
-#include"../headers/selective_blur.h"
-#include"../headers/fast_selective_blur.cuh"
-#include"../headers/find_borders.cuh"
-#include"../headers/matrix_operations.cuh"
 #include"../../config.h"
-#include"../headers/form_similarity_matrix.cuh"
-
 
 #pragma region constructors
 
@@ -16,13 +11,10 @@ CudaInterface::CudaInterface() {
 
 #pragma endregion
 
-#pragma region GPU functions
+#pragma region misc. GPU functions
 
 std::vector<thrust::pair<int, int>> CudaInterface::find_borders(cv::Mat labels) {
-
 	std::vector<thrust::pair<int, int>> h_out = find_borders_launch(labels.cols, labels.rows, labels);
-
-
 	return h_out;
 }
 
@@ -75,13 +67,16 @@ cv::Mat CudaInterface::fast_selective_blur(cv::Mat input, int steps, int thresho
 	return output;
 }
 
+#pragma endregion
 
 
 
-void CudaInterface::form_similarity_matrix(std::vector<cv::Mat> &input_histograms, cv::Mat &output_similarity_matrix, int N) {
+#pragma region affinity propagation
+
+void CudaInterface::form_similarity_matrix(std::vector<cv::Mat>& input_histograms, cv::Mat& output_similarity_matrix, int N) {
 
 	std::cout << " concatenating histograms..." << std::endl;
-	cv::Mat concatenated_histograms (cv::Size(N*3, 256), input_histograms[0].type() );
+	cv::Mat concatenated_histograms(cv::Size(N * 3, 256), input_histograms[0].type());
 	cv::Mat* mat_array = input_histograms.data();
 	cv::hconcat(mat_array, input_histograms.size(), concatenated_histograms);
 
@@ -99,15 +94,20 @@ void CudaInterface::form_similarity_matrix(std::vector<cv::Mat> &input_histogram
 	//cudaDeviceReset();
 }
 
+void CudaInterface::form_responsibility_matrix(cv::Mat& similarity_matrix, cv::Mat& responsibility_matrix, int N) {
+
+}
+
+void CudaInterface::form_availibility_matrix(cv::Mat& responsibility_matrix, cv::Mat& availibility_matrix, int N) {
+
+}
+
+void CudaInterface::form_critereon_matrix(cv::Mat& responsibility_matrix, cv::Mat& availibility_matrix, cv::Mat &critereon_matrix, int N) {
+
+}
 
 
 #pragma endregion
-
-
-
-
-
-
 
 
 

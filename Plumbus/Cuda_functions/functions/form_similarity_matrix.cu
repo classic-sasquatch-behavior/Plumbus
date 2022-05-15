@@ -23,7 +23,7 @@
 
 
 //first attempt: the kernel sums all 256*3 elements
-__global__ void form_similarity_matrix_kernel(cv::cuda::PtrStepSzf source, cv::cuda::PtrStepSzi output, int N) {
+__global__ void form_similarity_matrix_kernel(cv::cuda::PtrStepSzf src, cv::cuda::PtrStepSzi dst, int N) {
 	int output_x = (blockIdx.x * blockDim.x) + threadIdx.x;
 	int output_y = (blockIdx.y * blockDim.y) + threadIdx.y;
 
@@ -31,7 +31,6 @@ __global__ void form_similarity_matrix_kernel(cv::cuda::PtrStepSzf source, cv::c
 	int source_B_index = output_y;
 
 	if (output_x > N || output_y > N || source_A_index > N || source_B_index > N) { return; }
-
 
 	int A_start_x = 3* source_A_index;
 	int B_start_x = 3* source_B_index;
@@ -43,14 +42,14 @@ __global__ void form_similarity_matrix_kernel(cv::cuda::PtrStepSzf source, cv::c
 		int B_x = x_itr + B_start_x;
 
 		for (int y = 0; y < 256; y++) {
-			float difference = source(y, A_x) - source(y, B_x);
+			float difference = src(y, A_x) - src(y, B_x);
 			float square = difference*difference;
 			sum += square;
 		}
 	}
 
 	int similarity = -(int)round(sum);
-	output(output_y, output_x) = similarity;
+	dst(output_y, output_x) = similarity;
 }
 
 

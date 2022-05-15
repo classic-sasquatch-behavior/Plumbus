@@ -200,6 +200,9 @@
       <GenerateLineInfo Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</GenerateLineInfo>
       <PtxAsOptionV Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</PtxAsOptionV>
     </CudaCompile>
+    <CudaCompile Include="Cuda_functions\functions\form_availibility_matrix.cu" />
+    <CudaCompile Include="Cuda_functions\functions\form_critereon_matrix.cu" />
+    <CudaCompile Include="Cuda_functions\functions\form_responsibility_matrix.cu" />
     <CudaCompile Include="Cuda_functions\functions\form_similarity_matrix.cu" />
     <CudaCompile Include="Cuda_functions\functions\matrix_operations.cu" />
     <CudaCompile Include="Cuda_functions\functions\selective_blur.cu">
@@ -218,8 +221,12 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="config.h" />
+    <ClInclude Include="Cuda_functions\classes\cuda_function_includes.h" />
     <ClInclude Include="Cuda_functions\headers\fast_selective_blur.cuh" />
     <ClInclude Include="Cuda_functions\headers\find_borders.cuh" />
+    <ClInclude Include="Cuda_functions\headers\form_availibility_matrix.cuh" />
+    <ClInclude Include="Cuda_functions\headers\form_critereon_matrix.cuh" />
+    <ClInclude Include="Cuda_functions\headers\form_responsibility_matrix.cuh" />
     <ClInclude Include="Cuda_functions\headers\form_similarity_matrix.cuh" />
     <ClInclude Include="Cuda_functions\headers\matrix_operations.cuh" />
     <ClInclude Include="Cuda_functions\headers\selective_blur.h" />

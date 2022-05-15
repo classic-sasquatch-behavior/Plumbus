@@ -185,6 +185,12 @@
     </ClInclude>
     <ClInclude Include="Cuda_functions\headers\matrix_operations.cuh" />
     <ClInclude Include="Cuda_functions\headers\form_similarity_matrix.cuh" />
+    <ClInclude Include="Cuda_functions\headers\form_availibility_matrix.cuh" />
+    <ClInclude Include="Cuda_functions\headers\form_critereon_matrix.cuh" />
+    <ClInclude Include="Cuda_functions\headers\form_responsibility_matrix.cuh" />
+    <ClInclude Include="Cuda_functions\classes\cuda_function_includes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="Cuda_functions\functions\selective_blur.cu" />
@@ -192,5 +198,8 @@
     <CudaCompile Include="Cuda_functions\functions\find_borders.cu" />
     <CudaCompile Include="Cuda_functions\functions\matrix_operations.cu" />
     <CudaCompile Include="Cuda_functions\functions\form_similarity_matrix.cu" />
+    <CudaCompile Include="Cuda_functions\functions\form_responsibility_matrix.cu" />
+    <CudaCompile Include="Cuda_functions\functions\form_availibility_matrix.cu" />
+    <CudaCompile Include="Cuda_functions\functions\form_critereon_matrix.cu" />
   </ItemGroup>
 </Project>

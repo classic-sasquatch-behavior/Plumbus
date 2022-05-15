@@ -17,7 +17,16 @@ public:
 
 	std::vector<thrust::pair<int, int>> find_borders(cv::Mat labels);
 	
+#pragma region affinity propagation
+
 	void form_similarity_matrix(std::vector<cv::Mat> &input_histograms, cv::Mat &similarity_matrix, int N);
+	void form_responsibility_matrix(cv::Mat &similarity_matrix, cv::Mat &responsibility_matrix, int N);
+	void form_availibility_matrix(cv::Mat &responsibility_matrix, cv::Mat &availibility_matrix, int N);
+	void form_critereon_matrix(cv::Mat &responsibility_matrix, cv::Mat &availibility_matrix, cv::Mat &critereon_matrix, int N);
+
+
+
+#pragma endregion
 
 
 #pragma region matrix operations
