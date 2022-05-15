@@ -3,15 +3,23 @@
 #include"../../classes.h"
 #include"../../config.h"
 
-#pragma region constructors
+#pragma region structors
 
 CudaInterface::CudaInterface() {
-
+	if (cv::cuda::getCudaEnabledDeviceCount() > 0) {
+		cv::cuda::setDevice(0);
+	}
+	else {
+		std::cout << "no cuda enabled device found, or driver not installed or something. [error from: CudaInterface.cpp]";
+	}
+	std::cout << std::endl;
+	cv::cuda::printCudaDeviceInfo(0);
+	std::cout << std::endl;
 }
 
 #pragma endregion
 
-#pragma region misc. GPU functions
+#pragma region misc GPU functions
 
 std::vector<thrust::pair<int, int>> CudaInterface::find_borders(cv::Mat labels) {
 	std::vector<thrust::pair<int, int>> h_out = find_borders_launch(labels.cols, labels.rows, labels);
@@ -69,8 +77,6 @@ cv::Mat CudaInterface::fast_selective_blur(cv::Mat input, int steps, int thresho
 
 #pragma endregion
 
-
-
 #pragma region affinity propagation
 
 void CudaInterface::form_similarity_matrix(std::vector<cv::Mat>& input_histograms, cv::Mat& output_similarity_matrix, int N) {
@@ -86,7 +92,7 @@ void CudaInterface::form_similarity_matrix(std::vector<cv::Mat>& input_histogram
 	source.upload(concatenated_histograms);
 	output.upload(output_similarity_matrix);
 
-	std::cout << "launching similarity matrix..." << std::endl;
+	std::cout << "forming similarity matrix..." << std::endl;
 	form_similarity_matrix_launch(source, output, N);
 
 	output.download(output_similarity_matrix);
@@ -96,20 +102,41 @@ void CudaInterface::form_similarity_matrix(std::vector<cv::Mat>& input_histogram
 
 void CudaInterface::form_responsibility_matrix(cv::Mat& similarity_matrix, cv::Mat& responsibility_matrix, int N) {
 
+	cv::cuda::GpuMat d_input;
+	d_input.upload(similarity_matrix);
+	cv::cuda::GpuMat d_output;
+	form_responsibility_matrix_launch(d_input, d_output, N);
+	
+	std::cout << "forming responsibility matrix..." << std::endl;
+	d_output.download(responsibility_matrix);
 }
 
 void CudaInterface::form_availibility_matrix(cv::Mat& responsibility_matrix, cv::Mat& availibility_matrix, int N) {
+	cv::cuda::GpuMat d_input;
+	d_input.upload(responsibility_matrix);
+	cv::cuda::GpuMat d_output;
 
+	std::cout << "forming availibility matrix..." << std::endl;
+	form_availibility_matrix_launch(d_input, d_output, N);
+
+
+	d_output.download(availibility_matrix);
 }
 
 void CudaInterface::form_critereon_matrix(cv::Mat& responsibility_matrix, cv::Mat& availibility_matrix, cv::Mat &critereon_matrix, int N) {
+	cv::cuda::GpuMat d_input_a;
+	cv::cuda::GpuMat d_input_b;
+	d_input_a.upload(responsibility_matrix);
+	d_input_b.upload(availibility_matrix);
+	cv::cuda::GpuMat d_output;
 
+	std::cout << "forming critereon matrix..." << std::endl;
+	form_critereon_matrix_launch(d_input_a, d_input_b, d_output, N);
+
+	d_output.download(critereon_matrix);
 }
 
-
 #pragma endregion
-
-
 
 #pragma region matrix operations
 

@@ -24,8 +24,6 @@ public:
 	void form_availibility_matrix(cv::Mat &responsibility_matrix, cv::Mat &availibility_matrix, int N);
 	void form_critereon_matrix(cv::Mat &responsibility_matrix, cv::Mat &availibility_matrix, cv::Mat &critereon_matrix, int N);
 
-
-
 #pragma endregion
 
 

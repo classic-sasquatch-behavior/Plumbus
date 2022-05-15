@@ -23,6 +23,7 @@
 
 
 //first attempt: the kernel sums all 256*3 elements
+//actually works pretty good. I think this is what they mean by "big kernels" - many threads and many instructions is good
 __global__ void form_similarity_matrix_kernel(cv::cuda::PtrStepSzf src, cv::cuda::PtrStepSzi dst, int N) {
 	int output_x = (blockIdx.x * blockDim.x) + threadIdx.x;
 	int output_y = (blockIdx.y * blockDim.y) + threadIdx.y;
@@ -30,7 +31,7 @@ __global__ void form_similarity_matrix_kernel(cv::cuda::PtrStepSzf src, cv::cuda
 	int source_A_index = output_x;
 	int source_B_index = output_y;
 
-	if (output_x > N || output_y > N || source_A_index > N || source_B_index > N) { return; }
+	if (output_x >= N || output_y >= N || source_A_index >= N || source_B_index >= N) { return; }
 
 	int A_start_x = 3* source_A_index;
 	int B_start_x = 3* source_B_index;
