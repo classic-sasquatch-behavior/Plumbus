@@ -104,17 +104,19 @@ void CudaInterface::form_responsibility_matrix(cv::Mat& similarity_matrix, cv::M
 
 	cv::cuda::GpuMat d_input;
 	d_input.upload(similarity_matrix);
-	cv::cuda::GpuMat d_output;
+	cv::cuda::GpuMat d_output(d_input.size(), d_input.type());
+
+	std::cout << "forming responsibility matrix..." << std::endl;
 	form_responsibility_matrix_launch(d_input, d_output, N);
 	
-	std::cout << "forming responsibility matrix..." << std::endl;
+
 	d_output.download(responsibility_matrix);
 }
 
 void CudaInterface::form_availibility_matrix(cv::Mat& responsibility_matrix, cv::Mat& availibility_matrix, int N) {
 	cv::cuda::GpuMat d_input;
 	d_input.upload(responsibility_matrix);
-	cv::cuda::GpuMat d_output;
+	cv::cuda::GpuMat d_output(d_input.size(), d_input.type());
 
 	std::cout << "forming availibility matrix..." << std::endl;
 	form_availibility_matrix_launch(d_input, d_output, N);
@@ -128,12 +130,24 @@ void CudaInterface::form_critereon_matrix(cv::Mat& responsibility_matrix, cv::Ma
 	cv::cuda::GpuMat d_input_b;
 	d_input_a.upload(responsibility_matrix);
 	d_input_b.upload(availibility_matrix);
-	cv::cuda::GpuMat d_output;
+	cv::cuda::GpuMat d_output(d_input_a.size(), d_input_a.type());
 
 	std::cout << "forming critereon matrix..." << std::endl;
 	form_critereon_matrix_launch(d_input_a, d_input_b, d_output, N);
 
 	d_output.download(critereon_matrix);
+}
+
+void CudaInterface::extract_exemplars(cv::Mat &critereon_matrix, std::vector<int> &exemplars, int N) {
+	cv::cuda::GpuMat d_input;
+
+	d_input.upload(critereon_matrix);
+	thrust::device_vector<int> d_output = exemplars; //probably wants to be N - 1, it's alittle unclear but it doesnt actually matter as long as I iterate using N rather than the vector length
+
+	std::cout << "extracting exemplars..." << std::endl;
+	extract_exemplars_launch(d_input, d_output, N);
+
+	thrust::copy(d_output.begin(), d_output.end(), exemplars.begin() );
 }
 
 #pragma endregion

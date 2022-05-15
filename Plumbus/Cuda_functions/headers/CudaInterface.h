@@ -23,6 +23,7 @@ public:
 	void form_responsibility_matrix(cv::Mat &similarity_matrix, cv::Mat &responsibility_matrix, int N);
 	void form_availibility_matrix(cv::Mat &responsibility_matrix, cv::Mat &availibility_matrix, int N);
 	void form_critereon_matrix(cv::Mat &responsibility_matrix, cv::Mat &availibility_matrix, cv::Mat &critereon_matrix, int N);
+	void extract_exemplars(cv::Mat &critereon_matrix, std::vector<int> &exemplars, int N);
 
 #pragma endregion
 

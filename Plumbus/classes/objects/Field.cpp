@@ -482,9 +482,7 @@ void Field::affinity_propagation() { //this is gonna take a really, really long 
 	
 	int N = num_superpixels();
 	cv::Size matrix_size(N,N);
-	cv::Mat similarity_matrix(matrix_size, CV_32SC1);
 
-	//form similarity matrix
 	//to speed up: use sparse mats, use gpu gaussian blur
 	std::vector<cv::Mat> prepared_hists;
 	for (int i = 0; i < N; i++) {
@@ -494,41 +492,74 @@ void Field::affinity_propagation() { //this is gonna take a really, really long 
 		prepared_hists.push_back(hist);
 	}
 
+	cv::Mat similarity_matrix(matrix_size, CV_32SC1);
 	GPU->form_similarity_matrix(prepared_hists, similarity_matrix, N);
 
-	//set diagonal to lowest_val
 	cv::Mat similarity_matrix_diagonal = similarity_matrix.diag(0);
 	double lowest_val;
 	cv::minMaxIdx(similarity_matrix, &lowest_val);
 	similarity_matrix_diagonal.setTo((int)lowest_val);
+	std::cout << "similarity matrix:" << std::endl;
+	util->print_mat(similarity_matrix, 10);
 
-	//2) examine similarity matrix to form responsibility matrix
 	cv::Mat responsibility_matrix(matrix_size, CV_32SC1);
+	GPU->form_responsibility_matrix(similarity_matrix, responsibility_matrix, N);
+	std::cout << "responsibility_matrix:" << std::endl;
+	util->print_mat(responsibility_matrix, 10);
 
-	
-
-
-
-
-
-
-
-
-
-
-
-	//3) examine responsibility matrix to form availibility matrix
 	cv::Mat availibility_matrix(matrix_size, CV_32SC1);
+	GPU->form_availibility_matrix(responsibility_matrix, availibility_matrix, N);
+	std::cout << "availibility matrix:" << std::endl;
+	util->print_mat(availibility_matrix, 10);
 
-
-
-	//4) add responsibility matrix and availibility matrix to form critereon matrix 
 	cv::Mat critereon_matrix(matrix_size, CV_32SC1);
+	GPU->form_critereon_matrix(responsibility_matrix, availibility_matrix, critereon_matrix, N);
+	std::cout << "critereon matrix:" << std::endl;
+	util->print_mat(critereon_matrix, 10);
 
 	//5) examine critereon matrix to identify exemplars
-
-
 	//6) create regions based on exemplar clusters
+
+
+	std::vector<int> exemplars(N, 0);
+	GPU->extract_exemplars(critereon_matrix, exemplars, N);
+	std::cout << "exemplars: " << std::endl;
+
+	for (int exemplar : exemplars) {
+		std::cout << exemplar << ", ";
+	}
+	std::cout << std::endl;
+
+
+
+	std::unordered_map<int, std::vector<Superpixel*>> clusters;
+
+	for (int i = 0; i < N; i++) {
+		int exemplar_at_val = exemplars[i];
+		std::vector<Superpixel*> new_vector;
+		clusters[exemplar_at_val] = new_vector;
+	}
+
+	for (int i = 0; i < N; i++) {
+		int exemplar_at_val = exemplars[i];	
+		clusters[exemplar_at_val].push_back(superpixel_at(i));
+	}
+
+	for (auto cluster : clusters) {
+		Region* new_region = new Region(this);
+		new_region->set_constituents(cluster.second);
+		add_region(new_region);
+	}
+
+
+
+
+
+	
+		
+		
+		
+		
 
 
 }

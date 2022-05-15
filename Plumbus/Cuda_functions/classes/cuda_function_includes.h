@@ -7,3 +7,4 @@
 #include"../headers/form_availibility_matrix.cuh"
 #include"../headers/form_responsibility_matrix.cuh"
 #include"../headers/form_critereon_matrix.cuh"
+#include"../headers/extract_exemplars.cuh"

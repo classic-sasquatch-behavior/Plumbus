@@ -25,6 +25,7 @@ public:
 	std::set<Region*> all_neighboring_regions() { return _neighboring_regions; }
 	Superpixel* constituent_at(int index) { return _constituents[index]; }
 
+	inline void set_constituents(std::vector<Superpixel*> input) { _constituents = input; }
 	void set_neighboring_regions(std::set<Region*> input) { _neighboring_regions = input; }
 	void add_neighboring_region(Region* input) { _neighboring_regions.insert(input); }
 	void set_histogram(cv::Mat input) { _histogram = input; }
