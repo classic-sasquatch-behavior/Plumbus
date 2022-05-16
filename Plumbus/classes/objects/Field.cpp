@@ -16,7 +16,7 @@ void Field::calculate_average_region_colors() {
 		std::vector<int> color_sum = { 0,0,0 };
 
 		for (Superpixel* constituent : region->all_constituents()) {
-			cv::Vec3b constituent_color = constituent->average_color();
+			cv::Vec3b constituent_color = constituent->average_color_BGR();
 			for (int channel = 0; channel < 3; channel++) {
 				color_sum[channel] += constituent_color[channel];
 			}
@@ -480,20 +480,71 @@ void Field::form_regions() {
 
 void Field::affinity_propagation() { //this is gonna take a really, really long time like this lmao
 	
+	std::cout << "begin affinity propagation..." << std::endl;
+
 	int N = num_superpixels();
 	cv::Size matrix_size(N,N);
 
-	//to speed up: use sparse mats, use gpu gaussian blur
-	std::vector<cv::Mat> prepared_hists;
+	////to speed up: use sparse mats, use gpu gaussian blur
+	//std::vector<cv::Mat> prepared_hists;
+	//for (int i = 0; i < N; i++) {
+	//	cv::Mat hist = superpixel_at(i)->histogram();
+	//	cv::normalize(hist, hist, 100.0f);
+	//	cv::GaussianBlur(hist, hist, cv::Size(1, 3), 0);
+	//	prepared_hists.push_back(hist);
+	//}
+
+
+
+
+
+	std::vector<int> colors;
+
+	std::vector<float> H_vals;
+	std::vector<float> S_vals;
+	std::vector<float> V_vals;
+
 	for (int i = 0; i < N; i++) {
-		cv::Mat hist = superpixel_at(i)->histogram();
-		cv::normalize(hist, hist, 100.0f);
-		cv::GaussianBlur(hist, hist, cv::Size(1, 3), 0);
-		prepared_hists.push_back(hist);
+		Superpixel* superpixel = superpixel_at(i);
+		cv::Vec3b color = superpixel->average_color_HSV();
+
+		//"normalize" HSV values
+
+		//180 -> 100, 256->100, 256->100
+		//float H_factor = 100/180;
+		//float S_factor = 100/256;
+		//float V_factor = 100/256;
+
+
+
+		float H_val = (float)color[0];
+		float S_val = (float)color[1];
+		float V_val = (float)color[2];
+
+		std::cout << "H: " << H_val << " S: " << S_val << " V: " << V_val << std::endl;
+
+		H_vals.push_back(H_val);
+		S_vals.push_back(S_val);
+		V_vals.push_back(V_val);
 	}
 
+
+	cv::normalize(H_vals, H_vals, 100, 0, cv::NORM_MINMAX, -1, cv::noArray());
+	cv::normalize(S_vals, S_vals, 100, 0, cv::NORM_MINMAX, -1, cv::noArray());
+	cv::normalize(V_vals, V_vals, 100, 0, cv::NORM_MINMAX, -1, cv::noArray());
+
+	std::vector<std::vector<float>>channels = { H_vals, S_vals, V_vals };
+
+	for (int i = 0; i < N; i++) {
+		for (int channel = 0; channel < 3; channel++) {
+			colors.push_back((int)channels[channel][i]);
+		}
+	}
+
+
+
 	cv::Mat similarity_matrix(matrix_size, CV_32SC1);
-	GPU->form_similarity_matrix(prepared_hists, similarity_matrix, N);
+	GPU->form_similarity_matrix_color(colors, similarity_matrix, N);
 
 	cv::Mat similarity_matrix_diagonal = similarity_matrix.diag(0);
 	double lowest_val;
@@ -545,14 +596,16 @@ void Field::affinity_propagation() { //this is gonna take a really, really long 
 		clusters[exemplar_at_val].push_back(superpixel_at(i));
 	}
 
+	std::set<Region*> new_regions;
 	for (auto cluster : clusters) {
 		Region* new_region = new Region(this);
 		new_region->set_constituents(cluster.second);
 		for(Superpixel* constituent : cluster.second){
 			constituent->set_region(new_region);
 		}
-		add_region(new_region);
+		new_regions.insert(new_region);
 	}
+	set_regions(new_regions);
 	calculate_average_region_colors();
  
 

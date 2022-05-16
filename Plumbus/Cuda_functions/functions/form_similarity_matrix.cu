@@ -6,15 +6,6 @@
 
 
 
-//__device__ void subtract_histograms(cv::cuda::PtrStepSzf &source, cv::cuda::PtrStepSzf &scratch) {
-//
-//}
-//
-//__device__ void multiply_histograms(cv::cuda::PtrStepSzf& source, cv::cuda::PtrStepSzf& scratch) {
-//
-//}
-
-
 
 
 
@@ -45,6 +36,7 @@ __global__ void form_similarity_matrix_kernel(cv::cuda::PtrStepSzf src, cv::cuda
 		for (int y = 0; y < 256; y++) {
 			float difference = src(y, A_x) - src(y, B_x);
 			float square = difference*difference;
+			//float square = difference;
 			sum += square;
 		}
 	}

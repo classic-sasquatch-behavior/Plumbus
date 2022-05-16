@@ -100,6 +100,18 @@ void CudaInterface::form_similarity_matrix(std::vector<cv::Mat>& input_histogram
 	//cudaDeviceReset();
 }
 
+void CudaInterface::form_similarity_matrix_color(std::vector<int> &input_colors, cv::Mat& similarity_matrix, int N) {
+
+	cv::cuda::GpuMat output(similarity_matrix.size(), similarity_matrix.type());
+	thrust::device_vector<int> source = input_colors;
+
+	std::cout << "forming similarity matrix..." << std::endl;
+	form_similarity_matrix_color_launch(source, output, N);
+	output.download(similarity_matrix);
+
+	//cudaDeviceReset();
+}
+
 void CudaInterface::form_responsibility_matrix(cv::Mat& similarity_matrix, cv::Mat& responsibility_matrix, int N) {
 
 	cv::cuda::GpuMat d_input;

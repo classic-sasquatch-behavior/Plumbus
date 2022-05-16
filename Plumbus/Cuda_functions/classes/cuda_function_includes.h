@@ -4,6 +4,7 @@
 #include"../headers/find_borders.cuh"
 #include"../headers/matrix_operations.cuh"
 #include"../headers/form_similarity_matrix.cuh"
+#include"../headers/form_similarity_matrix_color.cuh"
 #include"../headers/form_availibility_matrix.cuh"
 #include"../headers/form_responsibility_matrix.cuh"
 #include"../headers/form_critereon_matrix.cuh"

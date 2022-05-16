@@ -34,11 +34,12 @@ void Frame::set_future(Moment* input) {
 #pragma region setup
 
 void Frame::run_filters() {
-
+	std::cout << "begin selective blur..." << std::endl;
 	//timer->begin("selective blur");
 	_blurred = GPU->selective_blur(source(), 50, 10, 5);
 	//timer->end("selective blur");
 
+	std::cout << "begin generaate superpixels" << std::endl;
 	//timer->begin("generate superpixels");
 	generate_superpixels(blurred());
 	//timer->end("generate superpixels");
@@ -72,6 +73,7 @@ void Frame::generate_superpixels(cv::Mat input) {
 	const int REGION_SIZE = 10; //original: 10 
 	const float RATIO = 0.075; //original: 0.075  
 
+	std::cout << "running ILSC superpixels..." << std::endl;
 	timer->begin("opencv superpixel function"); //EXTREMELY SLOW //try other opencv implimenations (3-4 others), then see if you can fix the github one, then try to build your own
 	cv::Ptr<cv::ximgproc::SuperpixelLSC> superpixels = cv::ximgproc::createSuperpixelLSC(src_HSV, REGION_SIZE, RATIO);
 
@@ -101,21 +103,26 @@ void Frame::generate_superpixels(cv::Mat input) {
 		new_field->add_superpixel(new_superpixel);
 	}
 	//FAST
-
-
+	cv::Mat input_HSV;
+	cv::cvtColor(input, input_HSV, cv::COLOR_BGR2HSV);
+	std::cout << "assigning points to superpixels..." << std::endl;
 	//timer->begin("assign points to superpixels"); //A LITTLE SLOW BUT FAST ENOUGH //why are you yelling
 	for (int row = 0; row < labels.rows; row++) {
 		for (int col = 0; col < labels.cols; col++) {
 			cv::Point new_point(col, row);
 			int label = labels.at<int>(new_point);
-			cv::Vec3b new_color = input.at<cv::Vec3b>(new_point);
+
+			cv::Vec3b new_color_BGR = input.at<cv::Vec3b>(new_point);
+			cv::Vec3b new_color_HSV = input_HSV.at<cv::Vec3b>(new_point);
 			field()->superpixel_at(label)->add_point(new_point);
-			field()->superpixel_at(label)->add_color(new_color);
+			field()->superpixel_at(label)->add_color_BGR(new_color_BGR);
+			field()->superpixel_at(label)->add_color_HSV(new_color_HSV);
 		}
 	}
 	//timer->end("assign points to superpixels"); //A LITTLE SLOW BUT FAST ENOUGH
 
 
+	std::cout << "waking up superpixels..." << std::endl;
 	timer->begin("wake up superpixels"); //A LITTLE SLOW BUT FAST ENOUGH
 	for (Superpixel* superpixel : field()->all_superpixels()) {
 		superpixel->compute_average_color();
@@ -180,7 +187,7 @@ cv::Mat Frame::draw_superpixels(Field* input) {
 
 	for (int superpixel = 0; superpixel < num_superpixels; superpixel++) {
 		Superpixel* this_pixel = input->superpixel_at(superpixel);
-		cv::Vec3b color_to_set = this_pixel->average_color();
+		cv::Vec3b color_to_set = this_pixel->average_color_BGR();
 		for (int pixel = 0; pixel < this_pixel->num_points(); pixel++ ) {
 			output.at<cv::Vec3b>(this_pixel->point_at(pixel)) = color_to_set;
 		}
