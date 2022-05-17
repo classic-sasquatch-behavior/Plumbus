@@ -20,11 +20,13 @@ public:
 #pragma region affinity propagation
 
 	void form_similarity_matrix(std::vector<cv::Mat> &input_histograms, cv::Mat &similarity_matrix, int N);
-	void form_similarity_matrix_color(std::vector<int> &input_colors, cv::Mat &similarity_matrix, int N);
+	void form_similarity_matrix_color(std::vector<float> &input_colors, cv::Mat &similarity_matrix, int N);
 	void form_responsibility_matrix(cv::Mat &similarity_matrix, cv::Mat &responsibility_matrix, int N);
 	void form_availibility_matrix(cv::Mat &responsibility_matrix, cv::Mat &availibility_matrix, int N);
 	void form_critereon_matrix(cv::Mat &responsibility_matrix, cv::Mat &availibility_matrix, cv::Mat &critereon_matrix, int N);
 	void extract_exemplars(cv::Mat &critereon_matrix, std::vector<int> &exemplars, int N);
+
+	void affinity_propagation_color(std::vector<float> &input_colors, std::vector<int>& exemplars, int N);
 
 #pragma endregion
 

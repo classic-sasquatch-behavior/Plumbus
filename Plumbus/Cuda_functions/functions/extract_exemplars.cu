@@ -10,19 +10,19 @@
 
 
 
-__global__ void extract_exemplars_kernel(cv::cuda::PtrStepSzi input, int* output, int N ) {
+__global__ void extract_exemplars_kernel(cv::cuda::PtrStepSzf input, int* output, int N ) {
 	int row = (blockIdx.y * blockDim.y) + threadIdx.y;
 
 
 	if (row >= N) {return;}
 
 
-	int highest_val = -INF;
+	float highest_val = -INF;
 	int row_exemplar = 0;
 
 	for (int col_iterator = 0; col_iterator < N; col_iterator++) {
 		
-		int val_at_col = input(row, col_iterator);
+		float val_at_col = input(row, col_iterator);
 		if (val_at_col > highest_val) {
 			highest_val = val_at_col;
 			row_exemplar = col_iterator;

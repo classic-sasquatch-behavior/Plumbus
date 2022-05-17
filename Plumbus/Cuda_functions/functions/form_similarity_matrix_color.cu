@@ -14,7 +14,7 @@
 
 
 
-__global__ void form_similarity_matrix_color_kernel(int* src, cv::cuda::PtrStepSzi dst, int N) {
+__global__ void form_similarity_matrix_color_kernel(float* src, cv::cuda::PtrStepSzf dst, int N) {
 	int output_x = (blockIdx.x * blockDim.x) + threadIdx.x;
 	int output_y = (blockIdx.y * blockDim.y) + threadIdx.y;
 
@@ -23,21 +23,22 @@ __global__ void form_similarity_matrix_color_kernel(int* src, cv::cuda::PtrStepS
 
 	if (output_x >= N || output_y >= N) { return; }
 
-	int sum = 0;
+	float sum = 0;
 
 	for (int channel = 0; channel < 3; channel++) {
 
-		int val_a = src[source_A_index + channel];
-		int val_b = src[source_B_index + channel];
+		float val_a = src[source_A_index + channel];
+		float val_b = src[source_B_index + channel];
 
-		int difference = val_a - val_b;
+		float difference = val_a - val_b;
 		float square = difference*difference;
 		//float square = abs(difference);
+		//sum += sqrt(square);
 		sum += square;
 
 	}
 
-	int similarity = -sum;
+	float similarity = -sum;
 	dst(output_y, output_x) = similarity;
 }
 
@@ -55,7 +56,7 @@ __global__ void form_similarity_matrix_color_kernel(int* src, cv::cuda::PtrStepS
 
 
 
-void form_similarity_matrix_color_launch(thrust::device_vector<int> &source, cv::cuda::GpuMat &output, int N) {
+void form_similarity_matrix_color_launch(thrust::device_vector<float> &source, cv::cuda::GpuMat &output, int N) {
 
 
 
@@ -64,7 +65,7 @@ void form_similarity_matrix_color_launch(thrust::device_vector<int> &source, cv:
 	dim3 num_blocks = { (unsigned int)num_blocks_xy, (unsigned int)num_blocks_xy, 1 };
 	dim3 threads_per_block = { 32, 32, 1 };
 
-	int* d_source = thrust::raw_pointer_cast(source.data());
+	float* d_source = thrust::raw_pointer_cast(source.data());
 
 	form_similarity_matrix_color_kernel << <num_blocks, threads_per_block >> > (d_source, output, N);
 	cudaDeviceSynchronize();

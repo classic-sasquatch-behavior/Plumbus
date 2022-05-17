@@ -185,14 +185,15 @@
     </ClInclude>
     <ClInclude Include="Cuda_functions\headers\matrix_operations.cuh" />
     <ClInclude Include="Cuda_functions\headers\form_similarity_matrix.cuh" />
-    <ClInclude Include="Cuda_functions\headers\form_availibility_matrix.cuh" />
-    <ClInclude Include="Cuda_functions\headers\form_critereon_matrix.cuh" />
-    <ClInclude Include="Cuda_functions\headers\form_responsibility_matrix.cuh" />
+    <ClInclude Include="Cuda_functions\headers\update_availibility_matrix.cuh" />
+    <ClInclude Include="Cuda_functions\headers\update_critereon_matrix.cuh" />
+    <ClInclude Include="Cuda_functions\headers\update_responsibility_matrix.cuh" />
     <ClInclude Include="Cuda_functions\classes\cuda_function_includes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Cuda_functions\headers\extract_exemplars.cuh" />
     <ClInclude Include="Cuda_functions\headers\form_similarity_matrix_color.cuh" />
+    <ClInclude Include="Cuda_functions\headers\damp_messages.cuh" />
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="Cuda_functions\functions\selective_blur.cu" />
@@ -200,10 +201,11 @@
     <CudaCompile Include="Cuda_functions\functions\find_borders.cu" />
     <CudaCompile Include="Cuda_functions\functions\matrix_operations.cu" />
     <CudaCompile Include="Cuda_functions\functions\form_similarity_matrix.cu" />
-    <CudaCompile Include="Cuda_functions\functions\form_responsibility_matrix.cu" />
-    <CudaCompile Include="Cuda_functions\functions\form_availibility_matrix.cu" />
-    <CudaCompile Include="Cuda_functions\functions\form_critereon_matrix.cu" />
+    <CudaCompile Include="Cuda_functions\functions\update_responsibility_matrix.cu" />
+    <CudaCompile Include="Cuda_functions\functions\update_availibility_matrix.cu" />
+    <CudaCompile Include="Cuda_functions\functions\update_critereon_matrix.cu" />
     <CudaCompile Include="Cuda_functions\functions\extract_exemplars.cu" />
     <CudaCompile Include="Cuda_functions\functions\form_similarity_matrix_color.cu" />
+    <CudaCompile Include="Cuda_functions\functions\damp_messages.cu" />
   </ItemGroup>
 </Project>

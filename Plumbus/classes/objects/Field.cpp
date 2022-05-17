@@ -272,7 +272,6 @@ void Field::refine_based_on_fitness(int size_threshold) {
 
 }
 
-
 void Field::establish_region_neighbors() {
 
 	for (Region* focus : all_regions()) {
@@ -480,7 +479,7 @@ void Field::form_regions() {
 
 void Field::affinity_propagation() { //this is gonna take a really, really long time like this lmao
 	
-	std::cout << "begin affinity propagation..." << std::endl;
+	std::cout << "preparing for affinity propagation..." << std::endl;
 
 	int N = num_superpixels();
 	cv::Size matrix_size(N,N);
@@ -494,11 +493,7 @@ void Field::affinity_propagation() { //this is gonna take a really, really long 
 	//	prepared_hists.push_back(hist);
 	//}
 
-
-
-
-
-	std::vector<int> colors;
+	std::vector<float> colors;
 
 	std::vector<float> H_vals;
 	std::vector<float> S_vals;
@@ -508,26 +503,14 @@ void Field::affinity_propagation() { //this is gonna take a really, really long 
 		Superpixel* superpixel = superpixel_at(i);
 		cv::Vec3b color = superpixel->average_color_HSV();
 
-		//"normalize" HSV values
-
-		//180 -> 100, 256->100, 256->100
-		//float H_factor = 100/180;
-		//float S_factor = 100/256;
-		//float V_factor = 100/256;
-
-
-
 		float H_val = (float)color[0];
 		float S_val = (float)color[1];
 		float V_val = (float)color[2];
-
-		std::cout << "H: " << H_val << " S: " << S_val << " V: " << V_val << std::endl;
 
 		H_vals.push_back(H_val);
 		S_vals.push_back(S_val);
 		V_vals.push_back(V_val);
 	}
-
 
 	cv::normalize(H_vals, H_vals, 100, 0, cv::NORM_MINMAX, -1, cv::noArray());
 	cv::normalize(S_vals, S_vals, 100, 0, cv::NORM_MINMAX, -1, cv::noArray());
@@ -537,51 +520,12 @@ void Field::affinity_propagation() { //this is gonna take a really, really long 
 
 	for (int i = 0; i < N; i++) {
 		for (int channel = 0; channel < 3; channel++) {
-			colors.push_back((int)channels[channel][i]);
+			colors.push_back(channels[channel][i]);
 		}
 	}
 
-
-
-	cv::Mat similarity_matrix(matrix_size, CV_32SC1);
-	GPU->form_similarity_matrix_color(colors, similarity_matrix, N);
-
-	cv::Mat similarity_matrix_diagonal = similarity_matrix.diag(0);
-	double lowest_val;
-	cv::minMaxIdx(similarity_matrix, &lowest_val);
-	similarity_matrix_diagonal.setTo((int)lowest_val);
-	std::cout << "similarity matrix:" << std::endl;
-	util->print_mat(similarity_matrix, 10);
-
-	cv::Mat responsibility_matrix(matrix_size, CV_32SC1);
-	GPU->form_responsibility_matrix(similarity_matrix, responsibility_matrix, N);
-	std::cout << "responsibility_matrix:" << std::endl;
-	util->print_mat(responsibility_matrix, 10);
-
-	cv::Mat availibility_matrix(matrix_size, CV_32SC1);
-	GPU->form_availibility_matrix(responsibility_matrix, availibility_matrix, N);
-	std::cout << "availibility matrix:" << std::endl;
-	util->print_mat(availibility_matrix, 10);
-
-	cv::Mat critereon_matrix(matrix_size, CV_32SC1);
-	GPU->form_critereon_matrix(responsibility_matrix, availibility_matrix, critereon_matrix, N);
-	std::cout << "critereon matrix:" << std::endl;
-	util->print_mat(critereon_matrix, 10);
-
-	//5) examine critereon matrix to identify exemplars
-	//6) create regions based on exemplar clusters
-
-
 	std::vector<int> exemplars(N, 0);
-	GPU->extract_exemplars(critereon_matrix, exemplars, N);
-	std::cout << "exemplars: " << std::endl;
-
-	for (int exemplar : exemplars) {
-		std::cout << exemplar << ", ";
-	}
-	std::cout << std::endl;
-
-
+	GPU->affinity_propagation_color(colors, exemplars, N );
 
 	std::unordered_map<int, std::vector<Superpixel*>> clusters;
 
@@ -607,18 +551,6 @@ void Field::affinity_propagation() { //this is gonna take a really, really long 
 	}
 	set_regions(new_regions);
 	calculate_average_region_colors();
- 
-
-
-
-
-	
-		
-		
-		
-		
-
-
 }
 
 
