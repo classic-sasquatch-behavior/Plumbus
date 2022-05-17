@@ -202,6 +202,7 @@
       <GenerateLineInfo Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</GenerateLineInfo>
       <PtxAsOptionV Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</PtxAsOptionV>
     </CudaCompile>
+    <CudaCompile Include="Cuda_functions\functions\presort_matrix_ap.cu" />
     <CudaCompile Include="Cuda_functions\functions\update_availibility_matrix.cu" />
     <CudaCompile Include="Cuda_functions\functions\update_critereon_matrix.cu" />
     <CudaCompile Include="Cuda_functions\functions\update_responsibility_matrix.cu" />
@@ -229,6 +230,7 @@
     <ClInclude Include="Cuda_functions\headers\extract_exemplars.cuh" />
     <ClInclude Include="Cuda_functions\headers\fast_selective_blur.cuh" />
     <ClInclude Include="Cuda_functions\headers\find_borders.cuh" />
+    <ClInclude Include="Cuda_functions\headers\presort_matrix_ap.cuh" />
     <ClInclude Include="Cuda_functions\headers\update_availibility_matrix.cuh" />
     <ClInclude Include="Cuda_functions\headers\update_critereon_matrix.cuh" />
     <ClInclude Include="Cuda_functions\headers\update_responsibility_matrix.cuh" />

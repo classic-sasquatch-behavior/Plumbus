@@ -5,6 +5,12 @@
 //const bool F = false;
 //
 
+const enum switch_row_or_col {
+	SELECT_ROW = 0, SELECT_COL = 1
+};
+
+
+
 constexpr int INF = 2147483647;
 #define IDX2C(i,j,ld) (((j)*(ld))+(i))
 #pragma endregion

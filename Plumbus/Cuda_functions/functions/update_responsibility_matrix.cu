@@ -45,7 +45,6 @@ __global__ void update_responsibility_matrix_kernel(cv::cuda::PtrStepSzf similar
 	}
 
 	responsibility_matrix(row, col) = result;
-	//dst(row,col) = src(row,col) - max of remaining similarities in row
 }
 
 

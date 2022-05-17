@@ -5,6 +5,8 @@
 
 
 
+
+
 #pragma region structors
 
 CudaInterface::CudaInterface() {
@@ -122,10 +124,12 @@ void CudaInterface::affinity_propagation_color(std::vector<float>& input_colors,
 
 	while (!algorithm_converged) {
 		std::cout << "updating responsibility matrix..." << std::endl;
+		//find top two values for each row
 		update_responsibility_matrix_launch(similarity_matrix, availibility_matrix, responsibility_matrix, N);
 		util->print_gpu_mat(responsibility_matrix, 5);
 
 		std::cout << "updating availibility matrix..." << std::endl;
+		//find top two values for each col
 		update_availibility_matrix_launch(responsibility_matrix, availibility_matrix, N);
 		util->print_gpu_mat(availibility_matrix, 5);
 
