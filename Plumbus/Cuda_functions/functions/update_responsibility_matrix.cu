@@ -6,48 +6,119 @@
 
 
 
-__global__ void update_responsibility_matrix_kernel(cv::cuda::PtrStepSzf similarity_matrix, cv::cuda::PtrStepSzf availibility_matrix, cv::cuda::PtrStepSzf responsibility_matrix, int N) {
-	
+
+
+
+
+
+
+
+__global__ void find_row_max_kernel(cv::cuda::PtrStepSzf similarity_matrix, cv::cuda::PtrStepSzf availibility_matrix, cv::cuda::PtrStepSzf AS_max_out, cv::cuda::PtrStepSzf S_max_out, int N) {
+
+	int row = (blockIdx.y * blockDim.y) + threadIdx.y;
+	if (row >= N) { return; }
+
+
+	float AS_max = -INF;
+	float AS_second_max = -INF;
+
+	float S_max = -INF;
+	float S_second_max = -INF;
+
+	for (int col = 0; col < N; col++) {
+		float A_val_at_col = availibility_matrix(row, col);
+		float S_val_at_col = similarity_matrix(row, col);
+		float AS_val_at_col = A_val_at_col + S_val_at_col;
+
+		//check S
+		if (S_val_at_col > S_second_max) {
+			S_second_max = S_val_at_col;
+		}
+		if (S_val_at_col > S_max) {
+			S_second_max = S_max;
+			S_max = S_val_at_col;
+		}
+
+		//check AS
+		if (AS_val_at_col > AS_second_max) {
+			AS_second_max = AS_val_at_col;
+		}
+		if (AS_val_at_col > AS_max) {
+			AS_second_max = AS_max;
+			AS_max = AS_val_at_col;
+		}
+	}
+
+	AS_max_out(row, 0) = AS_max;
+	AS_max_out(row, 1) = AS_second_max;
+
+	S_max_out(row, 0) = S_max;
+	S_max_out(row, 1) = S_second_max;
+}
+
+
+
+
+
+__global__ void calculate_off_diagonal_kernel(cv::cuda::PtrStepSzf similarity_matrix, cv::cuda::PtrStepSzf availibility_matrix, cv::cuda::PtrStepSzf AS_max, cv::cuda::PtrStepSzf responsibility_matrix,int N) {
 	int row = (blockIdx.y * blockDim.y) + threadIdx.y;
 	int col = (blockIdx.x * blockDim.x) + threadIdx.x;
 
-	if (row >= N || col >= N) { return; }
+	if (row >= N || col >= N || row == col) { return; }
 
-	float max_similarity = -INF;
-	float source_val = similarity_matrix(row, col);
-	float result = 0;
 
-	if (row == col) { //diagonal case
-		for (int col_iterator = 0; col_iterator < N; col_iterator++) {
-			if (col_iterator != col) {
-				float similarity = similarity_matrix(row, col_iterator);
-				if (similarity > max_similarity) {
-					max_similarity = similarity;
-				}
-			}
-		}
-		result = source_val - max_similarity;
+
+	float this_similarity_val = similarity_matrix(row, col);
+	float this_availibility_val = availibility_matrix(row, col);
+	float this_AS_val = this_similarity_val + this_availibility_val;
+
+	float AS_row_max_first = AS_max(row, 0);
+	float AS_row_max_second = AS_max(row, 1);
+
+	float subtrahend = 0;
+
+	if (this_AS_val != AS_row_max_first) {
+		subtrahend = AS_row_max_first;
+	}
+	else {
+		subtrahend = AS_row_max_second;
 	}
 
-	else if (row != col) { //off-diagonal case
-		for (int col_iterator = 0; col_iterator < N; col_iterator++) {
-			if (col_iterator != col) {
-				float similarity = similarity_matrix(row, col_iterator);
-				float availibility = availibility_matrix(row, col_iterator);
-
-				float s_a_sum = similarity + availibility;
-				if (s_a_sum > max_similarity) {
-					max_similarity = s_a_sum;
-				}
-			}
-		}
-		result = source_val - max_similarity;
-	}
-
+	float result = this_similarity_val - subtrahend;
 	responsibility_matrix(row, col) = result;
 }
 
 
+
+
+
+
+
+
+__global__ void calculate_on_diagonal_kernel(cv::cuda::PtrStepSzf similarity_matrix, cv::cuda::PtrStepSzf S_max, cv::cuda::PtrStepSzf responsibility_matrix, int N) {
+	int diag = (blockIdx.x * blockDim.x) + threadIdx.x;
+	
+	if (diag >= N) { return; }
+
+	float this_similarity_val = similarity_matrix(diag, diag);
+
+	float S_row_max_first = S_max(diag, 0);
+	float S_row_max_second = S_max(diag, 1);
+
+
+	float subtrahend = 0;
+
+	if (this_similarity_val != S_row_max_first) {
+		subtrahend = S_row_max_first;
+	}
+	else {
+		subtrahend = S_row_max_second;
+	}
+
+	float result = this_similarity_val - subtrahend;
+
+	responsibility_matrix(diag, diag) = result;
+}
 
 
 
@@ -60,15 +131,41 @@ __global__ void update_responsibility_matrix_kernel(cv::cuda::PtrStepSzf similar
 
 void update_responsibility_matrix_launch(cv::cuda::GpuMat& similarity_matrix, cv::cuda::GpuMat& availibility_matrix, cv::cuda::GpuMat& responsibility_matrix, int N) {
 
-	unsigned int grid_dim_xy = ((N - (N % 32)) / 32) + 1;
-	unsigned int block_dim_xy = 32;
-
-	dim3 num_blocks = {grid_dim_xy,grid_dim_xy,1};
-	dim3 threads_per_block = {block_dim_xy,block_dim_xy,1};
 
 
-	update_responsibility_matrix_kernel << <num_blocks, threads_per_block >> > (similarity_matrix, availibility_matrix, responsibility_matrix, N);
+	//find row max prep
+	unsigned int find_row_max_block_dim_y = 1024;
+	unsigned int find_row_max_grid_dim_y = ((N - (N % 1024))/1024) + 1;
+
+	dim3 find_row_max_num_blocks{ 1, find_row_max_grid_dim_y, 1 };
+	dim3 find_row_max_threads_per_block {1, find_row_max_block_dim_y, 1};
+
+	cv::cuda::GpuMat AS_max(cv::Size(2, N), similarity_matrix.type());
+	cv::cuda::GpuMat S_max(cv::Size(2, N), similarity_matrix.type());
+
+	//claculate off-diagonal prep
+
+	unsigned int off_diagonal_block_dim_xy = 32;
+	unsigned int off_diagonal_grid_dim_xy = ((N - (N % 32)) / 32) + 1;
+
+	dim3 off_diagonal_num_blocks = { off_diagonal_grid_dim_xy,off_diagonal_grid_dim_xy,1 };
+	dim3 off_diagonal_threads_per_block = { off_diagonal_block_dim_xy,off_diagonal_block_dim_xy,1 };
+
+
+	//calculate on-diagonal prep
+
+	unsigned int on_diagonal_block_dim_x = 1024;
+	unsigned int on_diagonal_grid_dim_x = ((N - (N % 1024)) / 1024) + 1;
+
+	dim3 on_diagonal_num_blocks{ on_diagonal_grid_dim_x, 1, 1 };
+	dim3 on_diagonal_threads_per_block{ on_diagonal_block_dim_x, 1, 1 };
+
+
+	find_row_max_kernel << <find_row_max_num_blocks, find_row_max_threads_per_block >> > (similarity_matrix, availibility_matrix, AS_max, S_max, N);
 	cudaDeviceSynchronize();
 
+	calculate_off_diagonal_kernel << <off_diagonal_num_blocks, off_diagonal_threads_per_block >> > (similarity_matrix, availibility_matrix, AS_max, responsibility_matrix, N);
+	calculate_on_diagonal_kernel << <on_diagonal_num_blocks, on_diagonal_threads_per_block >> > (similarity_matrix, S_max, responsibility_matrix, N);
+	cudaDeviceSynchronize();
 
 }

@@ -9,5 +9,5 @@
 #include"../headers/update_responsibility_matrix.cuh"
 #include"../headers/update_critereon_matrix.cuh"
 #include"../headers/extract_exemplars.cuh"
-#include"../headers/damp_messages.cuh"
+#include"../headers/dampen_messages.cuh"
 #include"../headers/presort_matrix_ap.cuh"

@@ -130,29 +130,4 @@ void update_availibility_matrix_launch(cv::cuda::GpuMat& responsibility_matrix, 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-	update_availibility_matrix_kernel << <num_blocks, threads_per_block >> > (responsibility_matrix, availibity_matrix, N);
-	//launch kernels
-	cudaDeviceSynchronize();
-
-
-
-
-
-
-
-
-
-
 }

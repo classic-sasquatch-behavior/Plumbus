@@ -122,52 +122,93 @@ void CudaInterface::affinity_propagation_color(std::vector<float>& input_colors,
 	similarity_matrix.upload(h_sim_mat);
 	util->print_gpu_mat(similarity_matrix, 5);
 
+	bool initialize = true;
+	int cycles_without_change = 0;
+
+
+
+
+
 	while (!algorithm_converged) {
+		std::wcout << "begin cycle" << std::endl;
+
+
+
+
+
+
 		std::cout << "updating responsibility matrix..." << std::endl;
-		//find top two values for each row
 		update_responsibility_matrix_launch(similarity_matrix, availibility_matrix, responsibility_matrix, N);
+		//if(initialize){
+		//	previous_responsibility_matrix = responsibility_matrix;
+		//	previous_availibility_matrix = availibility_matrix;
+		//	initialize = false;
+		//}
+		//dampen_messages_launch(previous_responsibility_matrix, responsibility_matrix, damping_factor, N); //dampen messages doesnt seem to be doing anything
+		//previous_availibility_matrix = responsibility_matrix;
 		util->print_gpu_mat(responsibility_matrix, 5);
+
+
+
+
+
 
 		std::cout << "updating availibility matrix..." << std::endl;
 		//find top two values for each col
-		update_availibility_matrix_launch(responsibility_matrix, availibility_matrix, N);
+		update_availibility_matrix_launch(responsibility_matrix, availibility_matrix, N); 
+		//dampen_messages_launch(previous_availibility_matrix, availibility_matrix, damping_factor, N);
+		//previous_availibility_matrix = availibility_matrix;
 		util->print_gpu_mat(availibility_matrix, 5);
+
+
+
+
+
 
 		std::cout << "updating critereon matrix..." << std::endl;
 		update_critereon_matrix_launch(responsibility_matrix, availibility_matrix, critereon_matrix, N);
 		util->print_gpu_mat(critereon_matrix, 5);
 
+
+
+
+
+
 		std::cout << "extracting exemplars..." << std::endl;
-
 		extract_exemplars_launch(critereon_matrix, working_exemplars, N);
-		
 		thrust::copy(working_exemplars.begin(), working_exemplars.end(), host_working_exemplars.begin());
-
 		for (int i = 0; i < N; i++) {
 			int val = host_working_exemplars[i];
 			exemplar_details[val]++;
 		}
-
 		int sum_decision_differences = 0;
 		for (int i = 0; i < N; i++) {
 			int decision_difference = abs(exemplar_details[i] - previous_exemplar_details[i]);
 			sum_decision_differences += decision_difference;
 		}
 		std::cout << "decision differences: " << sum_decision_differences << std::endl;
-
 		previous_exemplar_details = exemplar_details;
 		thrust::fill(exemplar_details.begin(), exemplar_details.end(), 0);
-
 		if (sum_decision_differences <= convergence_threshold) {
-			algorithm_converged = true;
-			break;
+			cycles_without_change++;
+			std::wcout << "cycles without change: " << cycles_without_change << std::endl;
+			if (cycles_without_change >= 10) {
+				algorithm_converged = true;
+				break;
+			}
 		}
 		thrust::fill(host_working_exemplars.begin(), host_working_exemplars.end(), 0);
 		working_exemplars = host_working_exemplars;
-		//make sure to damp 'messages' every cycle
-		//damp_messages_launch(responsibility_matrix, availibility_matrix, previous_responsibility_matrix, previous_availibility_matrix, damping_factor, N);
-		//previous_responsibility_matrix = responsibility_matrix;
-		//previous_availibility_matrix = availibility_matrix;
+
+
+
+
+
+
+
+
+		std::cout << "end cycle" << std::endl << std::endl;
+		std::cout << "----------------" << std::endl << std::endl;
 	}
 	std::cout << "exemplars determined, functiuon returning..." << std::endl;
 	thrust::copy(working_exemplars.begin(), working_exemplars.end(), exemplars.begin());
