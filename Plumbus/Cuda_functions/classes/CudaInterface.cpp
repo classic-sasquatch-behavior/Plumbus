@@ -223,26 +223,7 @@ void CudaInterface::affinity_propagation_color(cv::Mat& colors, cv::Mat& exempla
 
 
 
-void CudaInterface::form_similarity_matrix(std::vector<cv::Mat>& input_histograms, cv::Mat& output_similarity_matrix, int N) {
 
-	std::cout << " concatenating histograms..." << std::endl;
-	cv::Mat concatenated_histograms(cv::Size(N * 3, 256), input_histograms[0].type());
-	cv::Mat* mat_array = input_histograms.data();
-	cv::hconcat(mat_array, input_histograms.size(), concatenated_histograms);
-
-	cv::cuda::GpuMat source(concatenated_histograms.size(), concatenated_histograms.type());
-	cv::cuda::GpuMat output(output_similarity_matrix.size(), output_similarity_matrix.type());
-
-	source.upload(concatenated_histograms);
-	output.upload(output_similarity_matrix);
-
-	std::cout << "forming similarity matrix..." << std::endl;
-	form_similarity_matrix_launch(source, output, N);
-
-	output.download(output_similarity_matrix);
-
-	//cudaDeviceReset();
-}
 
 
 
