@@ -29,7 +29,7 @@ __global__ void extract_exemplars_kernel(cv::cuda::PtrStepSzf input, cv::cuda::P
 		}
 	}
 
-	output(0, row) = row_exemplar;
+	output(row, 0) = row_exemplar;
 }
 
 
@@ -44,10 +44,8 @@ void extract_exemplars_launch(cv::cuda::GpuMat& input, cv::cuda::GpuMat& output,
 
 	unsigned int grid_size = ((N - (N % 1024)) / 1024) + 1;
 
-	dim3 num_blocks = { grid_size, 1024, 1 };
-	dim3 threads_per_block = {1024, 1, 1};
-
-
+	dim3 num_blocks = { 1, grid_size, 1 };
+	dim3 threads_per_block = {1, 1024, 1};
 
 	extract_exemplars_kernel << <num_blocks, threads_per_block >> > (input, output, N);
 

@@ -40,7 +40,7 @@ __global__ void form_similarity_matrix_color_kernel(cv::cuda::PtrStepSzf src, cv
 
 	}
 
-	float similarity = -sum;
+	float similarity = -sqrt(sum);
 	dst(output_y, output_x) = similarity;
 }
 

@@ -529,7 +529,8 @@ void Field::affinity_propagation() { //this is gonna take a really, really long 
 		Superpixel* superpixel = superpixel_at(i);
 		cv::Vec3b color = superpixel->average_color_HSV();
 
-		float H_val = (float)color[0];
+		//float H_val = (float)color[0];
+		float H_val = 0;
 		float S_val = (float)color[1];
 		float V_val = (float)color[2];
 
@@ -547,13 +548,13 @@ void Field::affinity_propagation() { //this is gonna take a really, really long 
 
 	cv::hconcat(channels, colors);
 
-	cv::Mat exemplars(cv::Size(N, 0), CV_32SC1);
+	cv::Mat exemplars(cv::Size(1, N), CV_32SC1);
 
 
 
 
 
-	GPU->affinity_propagation_color(colors, exemplars, N ); //colors should be a host float mat, exemplars should be a host int mat
+	GPU->affinity_propagation_color(colors, exemplars, N); //colors should be a host float mat, exemplars should be a host int mat
 
 
 
@@ -569,16 +570,15 @@ void Field::affinity_propagation() { //this is gonna take a really, really long 
 	std::unordered_map<int, std::vector<Superpixel*>> clusters; //you can keep using vector here. the blew process converts whatever container data to vectors for interoperability, so its cool
 
 
-	//youre gonna have to fix this up after you do the above changes
-	for (int i = 0; i < N; i++) {
-		int exemplar_at_val = exemplars.at<int>(0, i);
+	for (int row = 0; row < N; row++) {
+		int exemplar_at_val = exemplars.at<int>(row, 0);
 		std::vector<Superpixel*> new_vector;
 		clusters[exemplar_at_val] = new_vector;
 	}
 
-	for (int i = 0; i < N; i++) {
-		int exemplar_at_val = exemplars.at<int>(0, i);
-		clusters[exemplar_at_val].push_back(superpixel_at(i)); //this could be more clear. there could be an error in here and if there was I couldnt tell from reading
+	for (int row = 0; row < N; row++) {
+		int exemplar_at_val = exemplars.at<int>(row, 0);
+		clusters[exemplar_at_val].push_back(superpixel_at(row)); //this could be more clear. there could be an error in here and if there was I couldnt tell from reading
 	}
 
 	std::set<Region*> new_regions;

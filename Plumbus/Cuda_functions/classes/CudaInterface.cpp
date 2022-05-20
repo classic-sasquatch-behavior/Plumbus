@@ -91,11 +91,12 @@ void CudaInterface::affinity_propagation_color(cv::Mat& colors, cv::Mat& exempla
 	std::cout << "running affinity propagation..." << std::endl;
 
 	cv::Size matrix_size(N, N);
-	float damping_factor = 0.8f;
+	float damping_factor = 0.95f;
 	int convergence_threshold = 10;
-	int num_static_cycles_before_convergence = 3;
+	//int num_static_cycles_before_convergence = 3;
+	int max_cycles = 100;
 	int matrix_type = CV_32FC1;
-	bool algorithm_converged = false;
+
 
 	cv::cuda::GpuMat similarity_matrix(matrix_size, matrix_type, cv::Scalar{0});
 	cv::cuda::GpuMat responsibility_matrix(matrix_size, matrix_type, cv::Scalar{ 0 });
@@ -108,7 +109,7 @@ void CudaInterface::affinity_propagation_color(cv::Mat& colors, cv::Mat& exempla
 
 	//replace thrust with opencv
 	cv::cuda::GpuMat source(cv::Size(3, N), CV_32FC1); //actually, you should pass in input colors as a mat.
-	cv::cuda::GpuMat working_exemplars(cv::Size(N, 1), CV_32SC1, cv::Scalar{0}); //likewise, you should pass working exemplars out as mat
+	cv::cuda::GpuMat working_exemplars(cv::Size(1, N), CV_32SC1, cv::Scalar{0}); //likewise, you should pass working exemplars out as mat
 	
 	source.upload(colors);
 
@@ -119,13 +120,10 @@ void CudaInterface::affinity_propagation_color(cv::Mat& colors, cv::Mat& exempla
 
 
 
-	cv::Mat host_working_exemplars(cv::Size(N, 1), CV_32SC1);
-	cv::Mat exemplar_details(cv::Size(N, 1), CV_32SC1);
-	cv::Mat previous_exemplar_details(cv::Size(N, 1), CV_32SC1);
+	cv::Mat host_working_exemplars(cv::Size(1, N), CV_32SC1);
+	cv::Mat exemplar_details(cv::Size(1, N), CV_32SC1);
+	cv::Mat previous_exemplar_details(cv::Size(1, N), CV_32SC1);
 
-	//std::vector<int> host_working_exemplars(N); 
-	//std::vector<int> exemplar_details(N, 0);
-	//std::vector<int> previous_exemplar_details(N);
 
 
 
@@ -139,6 +137,10 @@ void CudaInterface::affinity_propagation_color(cv::Mat& colors, cv::Mat& exempla
 	std::cout << "forming similarity matrix..." << std::endl;
 
 	form_similarity_matrix_color_launch(source, similarity_matrix, N);
+
+
+
+	//can get speedup by making this cuda
 	cv::Mat h_sim_mat(matrix_size, matrix_type);
 	similarity_matrix.download(h_sim_mat);
 	cv::Mat similarity_matrix_diagonal = h_sim_mat.diag(0);
@@ -148,15 +150,15 @@ void CudaInterface::affinity_propagation_color(cv::Mat& colors, cv::Mat& exempla
 	similarity_matrix.upload(h_sim_mat);
 	util->print_gpu_mat(similarity_matrix, 5);
 
+	bool algorithm_converged = false;
 	bool initialize = true;
-	int cycles_without_change = 0;
-
-
+	//int cycles_without_change = 0;
+	int cycles = 0;
 
 
 
 	while (!algorithm_converged) {
-		std::wcout << "begin cycle" << std::endl;
+		std::cout << "begin cycle " << cycles << std::endl;
 
 
 
@@ -170,7 +172,7 @@ void CudaInterface::affinity_propagation_color(cv::Mat& colors, cv::Mat& exempla
 			previous_availibility_matrix = availibility_matrix;
 			initialize = false;
 		}
-		dampen_messages_launch(previous_responsibility_matrix, responsibility_matrix, damping_factor, N); //dampen messages doesnt seem to be doing anything
+		dampen_messages_launch(previous_responsibility_matrix, responsibility_matrix, damping_factor, N); 
 		previous_availibility_matrix = responsibility_matrix;
 		util->print_gpu_mat(responsibility_matrix, 5);
 
@@ -180,7 +182,6 @@ void CudaInterface::affinity_propagation_color(cv::Mat& colors, cv::Mat& exempla
 
 
 		std::cout << "updating availibility matrix..." << std::endl;
-		//find top two values for each col
 		update_availibility_matrix_launch(responsibility_matrix, availibility_matrix, N); 
 		dampen_messages_launch(previous_availibility_matrix, availibility_matrix, damping_factor, N);
 		previous_availibility_matrix = availibility_matrix;
@@ -202,87 +203,18 @@ void CudaInterface::affinity_propagation_color(cv::Mat& colors, cv::Mat& exempla
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-		std::cout << "extracting exemplars..." << std::endl;
-		extract_exemplars_launch(critereon_matrix, working_exemplars, N);
-
-
-
-
-
-
-
-
-
-
-		//change all this to a kernel
-
-		std::cout << "downloading working exemplars..." << std::endl; //laughably slow
-		working_exemplars.download(host_working_exemplars);
-
-		std::cout << "extract exemplars host code... " << std::endl;
-
-	
-		for (int i = 0; i < N; i++) {
-			int val = host_working_exemplars.at<int>(0, i);
-			exemplar_details.at<int>(0, i)++;
-		}
-		int sum_decision_differences = 0;
-		for (int i = 0; i < N; i++) {
-			int decision_difference = abs(exemplar_details.at<int>(0, i) - previous_exemplar_details.at<int>(0, i));
-			sum_decision_differences += decision_difference;
-		}
-		std::cout << "decision differences: " << sum_decision_differences << std::endl;
-
-		previous_exemplar_details = exemplar_details;
-		exemplar_details = 0;
-
-		if (sum_decision_differences <= convergence_threshold) {
-			cycles_without_change++;
-			std::cout << "cycles without change: " << cycles_without_change << std::endl;
-			if (cycles_without_change >= num_static_cycles_before_convergence) {
-				algorithm_converged = true;
-			}
-		}
-
-		std::cout << "end cycle" << std::endl << std::endl;
+		std::cout << "end cycle " << cycles << std::endl << std::endl;
 		std::cout << "----------------" << std::endl << std::endl;
+		cycles++;
+
+		if (cycles >= max_cycles) {
+			algorithm_converged = true;
+			std::cout << "extracting exemplars..." << std::endl;
+			extract_exemplars_launch(critereon_matrix, working_exemplars, N);
+			working_exemplars.download(exemplars);
+		}
 	}
 	std::cout << "exemplars determined, function returning..." << std::endl;
-
-	working_exemplars.download(exemplars);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
 
 
