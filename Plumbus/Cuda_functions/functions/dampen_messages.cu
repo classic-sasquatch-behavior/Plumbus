@@ -13,7 +13,7 @@ __global__ void dampen_messages_kernel(cv::cuda::PtrStepSzf previous_matrix, cv:
 	if (row >= N || col >= N) { return; }
 
 	float previous_val = previous_matrix(row, col);
-	float updated_val = previous_matrix(row, col);
+	float updated_val = updated_matrix(row, col); 
 
 	float result = (damping_factor * previous_val) + ((1 - damping_factor) * (updated_val));
 	resulting_matrix(row, col) = result;

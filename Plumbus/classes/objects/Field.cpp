@@ -493,11 +493,37 @@ void Field::affinity_propagation() { //this is gonna take a really, really long 
 	//	prepared_hists.push_back(hist);
 	//}
 
-	std::vector<float> colors;
 
-	std::vector<float> H_vals;
-	std::vector<float> S_vals;
-	std::vector<float> V_vals;
+
+
+
+
+
+
+
+
+
+	//redo, using mats instead of vectors
+
+
+
+
+
+
+
+
+
+
+
+
+
+	cv::Mat colors(cv::Size(3, N), CV_32FC1);
+
+	cv::Mat H_vals(cv::Size(1, N), CV_32FC1);
+	cv::Mat S_vals(cv::Size(1, N), CV_32FC1);
+	cv::Mat V_vals(cv::Size(1, N), CV_32FC1);
+
+
 
 	for (int i = 0; i < N; i++) {
 		Superpixel* superpixel = superpixel_at(i);
@@ -507,37 +533,52 @@ void Field::affinity_propagation() { //this is gonna take a really, really long 
 		float S_val = (float)color[1];
 		float V_val = (float)color[2];
 
-		H_vals.push_back(H_val);
-		S_vals.push_back(S_val);
-		V_vals.push_back(V_val);
+		H_vals.at<float>(i, 0) = H_val;
+		S_vals.at<float>(i, 0) = S_val;
+		V_vals.at<float>(i, 0) = V_val;
 	}
 
 	cv::normalize(H_vals, H_vals, 100, 0, cv::NORM_MINMAX, -1, cv::noArray());
 	cv::normalize(S_vals, S_vals, 100, 0, cv::NORM_MINMAX, -1, cv::noArray());
 	cv::normalize(V_vals, V_vals, 100, 0, cv::NORM_MINMAX, -1, cv::noArray());
 
-	std::vector<std::vector<float>>channels = { H_vals, S_vals, V_vals };
 
+	std::vector<cv::Mat> channels = { H_vals, S_vals, V_vals };
+
+	cv::hconcat(channels, colors);
+
+	cv::Mat exemplars(cv::Size(N, 0), CV_32SC1);
+
+
+
+
+
+	GPU->affinity_propagation_color(colors, exemplars, N ); //colors should be a host float mat, exemplars should be a host int mat
+
+
+
+
+
+
+
+
+
+
+
+
+	std::unordered_map<int, std::vector<Superpixel*>> clusters; //you can keep using vector here. the blew process converts whatever container data to vectors for interoperability, so its cool
+
+
+	//youre gonna have to fix this up after you do the above changes
 	for (int i = 0; i < N; i++) {
-		for (int channel = 0; channel < 3; channel++) {
-			colors.push_back(channels[channel][i]);
-		}
-	}
-
-	std::vector<int> exemplars(N, 0);
-	GPU->affinity_propagation_color(colors, exemplars, N );
-
-	std::unordered_map<int, std::vector<Superpixel*>> clusters;
-
-	for (int i = 0; i < N; i++) {
-		int exemplar_at_val = exemplars[i];
+		int exemplar_at_val = exemplars.at<int>(0, i);
 		std::vector<Superpixel*> new_vector;
 		clusters[exemplar_at_val] = new_vector;
 	}
 
 	for (int i = 0; i < N; i++) {
-		int exemplar_at_val = exemplars[i];	
-		clusters[exemplar_at_val].push_back(superpixel_at(i));
+		int exemplar_at_val = exemplars.at<int>(0, i);
+		clusters[exemplar_at_val].push_back(superpixel_at(i)); //this could be more clear. there could be an error in here and if there was I couldnt tell from reading
 	}
 
 	std::set<Region*> new_regions;

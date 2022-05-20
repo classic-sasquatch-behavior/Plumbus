@@ -26,7 +26,7 @@ public:
 	void form_critereon_matrix(cv::Mat &responsibility_matrix, cv::Mat &availibility_matrix, cv::Mat &critereon_matrix, int N);
 	void extract_exemplars(cv::Mat &critereon_matrix, std::vector<int> &exemplars, int N);
 
-	void affinity_propagation_color(std::vector<float> &input_colors, std::vector<int>& exemplars, int N);
+	void affinity_propagation_color(cv::Mat &colors, cv::Mat &exemplars, int N);
 
 #pragma endregion
 

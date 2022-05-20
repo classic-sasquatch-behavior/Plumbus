@@ -5,4 +5,4 @@
 
 
 
-void form_similarity_matrix_color_launch(thrust::device_vector<float> &source, cv::cuda::GpuMat &output, int N);
+void form_similarity_matrix_color_launch(cv::cuda::GpuMat &source, cv::cuda::GpuMat &output, int N);

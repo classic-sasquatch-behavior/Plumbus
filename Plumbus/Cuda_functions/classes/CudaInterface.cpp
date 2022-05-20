@@ -84,13 +84,16 @@ cv::Mat CudaInterface::fast_selective_blur(cv::Mat input, int steps, int thresho
 #pragma region affinity propagation
 
 
-void CudaInterface::affinity_propagation_color(std::vector<float>& input_colors, std::vector<int>& exemplars, int N) {
+void CudaInterface::affinity_propagation_color(cv::Mat& colors, cv::Mat& exemplars, int N) {
+
+
 
 	std::cout << "running affinity propagation..." << std::endl;
 
 	cv::Size matrix_size(N, N);
-	float damping_factor = 0.5f;
+	float damping_factor = 0.8f;
 	int convergence_threshold = 10;
+	int num_static_cycles_before_convergence = 3;
 	int matrix_type = CV_32FC1;
 	bool algorithm_converged = false;
 
@@ -102,13 +105,36 @@ void CudaInterface::affinity_propagation_color(std::vector<float>& input_colors,
 	cv::cuda::GpuMat previous_responsibility_matrix(matrix_size, matrix_type, cv::Scalar{ 0 });
 	cv::cuda::GpuMat previous_availibility_matrix(matrix_size, matrix_type, cv::Scalar{ 0 });
 
-	thrust::device_vector<float> source = input_colors;
 
-	thrust::device_vector<int> working_exemplars = exemplars;
+	//replace thrust with opencv
+	cv::cuda::GpuMat source(cv::Size(3, N), CV_32FC1); //actually, you should pass in input colors as a mat.
+	cv::cuda::GpuMat working_exemplars(cv::Size(N, 1), CV_32SC1, cv::Scalar{0}); //likewise, you should pass working exemplars out as mat
+	
+	source.upload(colors);
 
-	std::vector<int> host_working_exemplars(N); 
-	std::vector<int> exemplar_details(N);
-	std::vector<int> previous_exemplar_details(N);
+
+
+
+
+
+
+
+	cv::Mat host_working_exemplars(cv::Size(N, 1), CV_32SC1);
+	cv::Mat exemplar_details(cv::Size(N, 1), CV_32SC1);
+	cv::Mat previous_exemplar_details(cv::Size(N, 1), CV_32SC1);
+
+	//std::vector<int> host_working_exemplars(N); 
+	//std::vector<int> exemplar_details(N, 0);
+	//std::vector<int> previous_exemplar_details(N);
+
+
+
+
+
+
+
+
+
 	
 	std::cout << "forming similarity matrix..." << std::endl;
 
@@ -139,13 +165,13 @@ void CudaInterface::affinity_propagation_color(std::vector<float>& input_colors,
 
 		std::cout << "updating responsibility matrix..." << std::endl;
 		update_responsibility_matrix_launch(similarity_matrix, availibility_matrix, responsibility_matrix, N);
-		//if(initialize){
-		//	previous_responsibility_matrix = responsibility_matrix;
-		//	previous_availibility_matrix = availibility_matrix;
-		//	initialize = false;
-		//}
-		//dampen_messages_launch(previous_responsibility_matrix, responsibility_matrix, damping_factor, N); //dampen messages doesnt seem to be doing anything
-		//previous_availibility_matrix = responsibility_matrix;
+		if(initialize){
+			previous_responsibility_matrix = responsibility_matrix;
+			previous_availibility_matrix = availibility_matrix;
+			initialize = false;
+		}
+		dampen_messages_launch(previous_responsibility_matrix, responsibility_matrix, damping_factor, N); //dampen messages doesnt seem to be doing anything
+		previous_availibility_matrix = responsibility_matrix;
 		util->print_gpu_mat(responsibility_matrix, 5);
 
 
@@ -156,8 +182,8 @@ void CudaInterface::affinity_propagation_color(std::vector<float>& input_colors,
 		std::cout << "updating availibility matrix..." << std::endl;
 		//find top two values for each col
 		update_availibility_matrix_launch(responsibility_matrix, availibility_matrix, N); 
-		//dampen_messages_launch(previous_availibility_matrix, availibility_matrix, damping_factor, N);
-		//previous_availibility_matrix = availibility_matrix;
+		dampen_messages_launch(previous_availibility_matrix, availibility_matrix, damping_factor, N);
+		previous_availibility_matrix = availibility_matrix;
 		util->print_gpu_mat(availibility_matrix, 5);
 
 
@@ -174,45 +200,96 @@ void CudaInterface::affinity_propagation_color(std::vector<float>& input_colors,
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 		std::cout << "extracting exemplars..." << std::endl;
 		extract_exemplars_launch(critereon_matrix, working_exemplars, N);
-		thrust::copy(working_exemplars.begin(), working_exemplars.end(), host_working_exemplars.begin());
+
+
+
+
+
+
+
+
+
+
+		//change all this to a kernel
+
+		std::cout << "downloading working exemplars..." << std::endl; //laughably slow
+		working_exemplars.download(host_working_exemplars);
+
+		std::cout << "extract exemplars host code... " << std::endl;
+
+	
 		for (int i = 0; i < N; i++) {
-			int val = host_working_exemplars[i];
-			exemplar_details[val]++;
+			int val = host_working_exemplars.at<int>(0, i);
+			exemplar_details.at<int>(0, i)++;
 		}
 		int sum_decision_differences = 0;
 		for (int i = 0; i < N; i++) {
-			int decision_difference = abs(exemplar_details[i] - previous_exemplar_details[i]);
+			int decision_difference = abs(exemplar_details.at<int>(0, i) - previous_exemplar_details.at<int>(0, i));
 			sum_decision_differences += decision_difference;
 		}
 		std::cout << "decision differences: " << sum_decision_differences << std::endl;
+
 		previous_exemplar_details = exemplar_details;
-		thrust::fill(exemplar_details.begin(), exemplar_details.end(), 0);
+		exemplar_details = 0;
+
 		if (sum_decision_differences <= convergence_threshold) {
 			cycles_without_change++;
-			std::wcout << "cycles without change: " << cycles_without_change << std::endl;
-			if (cycles_without_change >= 10) {
+			std::cout << "cycles without change: " << cycles_without_change << std::endl;
+			if (cycles_without_change >= num_static_cycles_before_convergence) {
 				algorithm_converged = true;
-				break;
 			}
 		}
-		thrust::fill(host_working_exemplars.begin(), host_working_exemplars.end(), 0);
-		working_exemplars = host_working_exemplars;
-
-
-
-
-
-
-
 
 		std::cout << "end cycle" << std::endl << std::endl;
 		std::cout << "----------------" << std::endl << std::endl;
 	}
-	std::cout << "exemplars determined, functiuon returning..." << std::endl;
-	thrust::copy(working_exemplars.begin(), working_exemplars.end(), exemplars.begin());
+	std::cout << "exemplars determined, function returning..." << std::endl;
+
+	working_exemplars.download(exemplars);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
 
 void CudaInterface::form_similarity_matrix(std::vector<cv::Mat>& input_histograms, cv::Mat& output_similarity_matrix, int N) {
 
@@ -235,17 +312,7 @@ void CudaInterface::form_similarity_matrix(std::vector<cv::Mat>& input_histogram
 	//cudaDeviceReset();
 }
 
-void CudaInterface::form_similarity_matrix_color(std::vector<float> &input_colors, cv::Mat& similarity_matrix, int N) {
 
-	cv::cuda::GpuMat output(similarity_matrix.size(), similarity_matrix.type());
-	thrust::device_vector<float> source = input_colors;
-
-	std::cout << "forming similarity matrix..." << std::endl;
-	form_similarity_matrix_color_launch(source, output, N);
-	output.download(similarity_matrix);
-
-	//cudaDeviceReset();
-}
 
 #pragma endregion
 

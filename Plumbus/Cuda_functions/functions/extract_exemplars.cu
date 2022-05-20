@@ -10,7 +10,7 @@
 
 
 
-__global__ void extract_exemplars_kernel(cv::cuda::PtrStepSzf input, int* output, int N ) {
+__global__ void extract_exemplars_kernel(cv::cuda::PtrStepSzf input, cv::cuda::PtrStepSzi output, int N ) { //seemingly broken behavior might arise from confusion between col and row here
 	int row = (blockIdx.y * blockDim.y) + threadIdx.y;
 
 
@@ -29,7 +29,7 @@ __global__ void extract_exemplars_kernel(cv::cuda::PtrStepSzf input, int* output
 		}
 	}
 
-	output[row] = row_exemplar;
+	output(0, row) = row_exemplar;
 }
 
 
@@ -39,17 +39,17 @@ __global__ void extract_exemplars_kernel(cv::cuda::PtrStepSzf input, int* output
 
 
 
-void extract_exemplars_launch(cv::cuda::GpuMat& input, thrust::device_vector<int> &output, int N) {
-
-	unsigned int grid_size = ((N - (N % 32)) / 32) + 1;
-
-	dim3 num_blocks = { 1, grid_size, 1 };
-	dim3 threads_per_block = {1, 32, 1};
-
-	int* d_output = thrust::raw_pointer_cast(output.data());
+void extract_exemplars_launch(cv::cuda::GpuMat& input, cv::cuda::GpuMat& output, int N) {
 
 
-	extract_exemplars_kernel << <num_blocks, threads_per_block >> > (input, d_output, N);
+	unsigned int grid_size = ((N - (N % 1024)) / 1024) + 1;
+
+	dim3 num_blocks = { grid_size, 1024, 1 };
+	dim3 threads_per_block = {1024, 1, 1};
+
+
+
+	extract_exemplars_kernel << <num_blocks, threads_per_block >> > (input, output, N);
 
 }
 

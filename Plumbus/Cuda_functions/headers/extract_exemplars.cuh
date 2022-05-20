@@ -11,4 +11,4 @@
 
 
 
-void extract_exemplars_launch(cv::cuda::GpuMat &input, thrust::device_vector<int> &output, int N);
+void extract_exemplars_launch(cv::cuda::GpuMat &input, cv::cuda::GpuMat &output, int N);
