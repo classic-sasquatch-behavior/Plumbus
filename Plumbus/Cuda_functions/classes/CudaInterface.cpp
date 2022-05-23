@@ -91,10 +91,10 @@ void CudaInterface::affinity_propagation_color(cv::Mat& colors, cv::Mat& exempla
 	std::cout << "running affinity propagation..." << std::endl;
 
 	cv::Size matrix_size(N, N);
-	float damping_factor = 0.95f;
+	float damping_factor = 0.9f;
 	int convergence_threshold = 10;
 	//int num_static_cycles_before_convergence = 3;
-	int max_cycles = 100;
+	int max_cycles = 10;
 	int matrix_type = CV_32FC1;
 
 
@@ -145,8 +145,12 @@ void CudaInterface::affinity_propagation_color(cv::Mat& colors, cv::Mat& exempla
 	similarity_matrix.download(h_sim_mat);
 	cv::Mat similarity_matrix_diagonal = h_sim_mat.diag(0);
 	double lowest_val;
-	cv::minMaxIdx(h_sim_mat, &lowest_val);
-	similarity_matrix_diagonal.setTo((float)lowest_val);
+	double highest_val;
+	cv::minMaxIdx(h_sim_mat, &lowest_val, &highest_val);
+
+	float similarity_min = lowest_val * 2; //pretty good: lowest_val * 2 (from lowest_val * 1)
+
+	similarity_matrix_diagonal.setTo(similarity_min);
 	similarity_matrix.upload(h_sim_mat);
 	util->print_gpu_mat(similarity_matrix, 5);
 

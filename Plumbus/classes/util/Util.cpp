@@ -51,9 +51,9 @@ void Util::print_gpu_mat(cv::cuda::GpuMat input, int depth) {
 		for (int col = new_start_col; col < new_end_col; col++) {
 			std::cout << temp.at<int>(row, col) << ", ";
 		}
-		std::cout << "|" << std::endl;
+		std::cout << "|" << std::endl << std::endl;
 	}
-	std::cout << "..." << std::endl;
+	std::cout << "..." << std::endl << std::endl;
 	for (int row = new_start_row; row < new_end_row; row++) {
 		for (int col = 0; col < depth; col++) {
 			std::cout << temp.at<int>(row, col) << ", ";
@@ -62,7 +62,7 @@ void Util::print_gpu_mat(cv::cuda::GpuMat input, int depth) {
 		for (int col = new_start_col; col < new_end_col; col++) {
 			std::cout << temp.at<int>(row, col) << ", ";
 		}
-		std::cout << "|" << std::endl;
+		std::cout << "|" << std::endl << std::endl;
 	}
 	std::cout << std::endl;
 }
