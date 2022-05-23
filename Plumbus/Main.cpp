@@ -75,10 +75,7 @@ void listen_for_mouse(int event, int x, int y, int flags, void* userdata)
 			}
 		}
 		selected_region = superpixel->region();
-		std::cout << "region size: " << selected_region->num_constituents() << ", number of neighbors: " << selected_region->num_neighbors() << std::endl;
-		for (Region* neighbor : selected_region->all_neighboring_regions()) {
-			std::cout << "neighbor size: " << neighbor->num_constituents() << std::endl;
-		}
+		std::cout << "region size: " << selected_region->num_constituents() << std::endl;
 		if (double_click) {
 			std::cout << "constituent means: " << std::endl;
 			for (Superpixel* constituent : selected_region->all_constituents()) {

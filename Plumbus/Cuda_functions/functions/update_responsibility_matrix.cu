@@ -13,7 +13,7 @@
 
 
 
-__global__ void find_row_max_kernel(cv::cuda::PtrStepSzf similarity_matrix, cv::cuda::PtrStepSzf availibility_matrix, cv::cuda::PtrStepSzf AS_max_out, cv::cuda::PtrStepSzf S_max_out, int N) {
+__global__ void find_row_max_kernel(cv::cuda::PtrStepSzf similarity_matrix, cv::cuda::PtrStepSzf availibility_matrix, cv::cuda::PtrStepSzf AS_max_out, int N) {
 
 	int row = (blockIdx.y * blockDim.y) + threadIdx.y;
 	if (row >= N) { return; }
@@ -22,22 +22,12 @@ __global__ void find_row_max_kernel(cv::cuda::PtrStepSzf similarity_matrix, cv::
 	float AS_max = -INF;
 	float AS_second_max = -INF;
 
-	float S_max = -INF;
-	float S_second_max = -INF;
+
 
 	for (int col = 0; col < N; col++) {
 		float A_val_at_col = availibility_matrix(row, col);
-		float S_val_at_col = similarity_matrix(row, col);
-		float AS_val_at_col = A_val_at_col + S_val_at_col;
+		float AS_val_at_col = A_val_at_col;
 
-		//check S
-		if (S_val_at_col > S_second_max) {
-			S_second_max = S_val_at_col;
-		}
-		if (S_val_at_col > S_max) {
-			S_second_max = S_max;
-			S_max = S_val_at_col;
-		}
 
 		//check AS
 		if (AS_val_at_col > AS_second_max) {
@@ -52,8 +42,7 @@ __global__ void find_row_max_kernel(cv::cuda::PtrStepSzf similarity_matrix, cv::
 	AS_max_out(row, 0) = AS_max;
 	AS_max_out(row, 1) = AS_second_max;
 
-	S_max_out(row, 0) = S_max;
-	S_max_out(row, 1) = S_second_max;
+
 }
 
 
@@ -110,7 +99,6 @@ void update_responsibility_matrix_launch(cv::cuda::GpuMat& similarity_matrix, cv
 	dim3 find_row_max_threads_per_block {1, find_row_max_block_dim_y, 1};
 
 	cv::cuda::GpuMat AS_max(cv::Size(2, N), similarity_matrix.type());
-	cv::cuda::GpuMat S_max(cv::Size(2, N), similarity_matrix.type()); //delete later
 
 	//claculate off-diagonal prep
 
@@ -126,7 +114,7 @@ void update_responsibility_matrix_launch(cv::cuda::GpuMat& similarity_matrix, cv
 
 
 
-	find_row_max_kernel << <find_row_max_num_blocks, find_row_max_threads_per_block >> > (similarity_matrix, availibility_matrix, AS_max, S_max, N);
+	find_row_max_kernel << <find_row_max_num_blocks, find_row_max_threads_per_block >> > (similarity_matrix, availibility_matrix, AS_max, N);
 	cudaDeviceSynchronize();
 
 	calculate_off_diagonal_kernel << <off_diagonal_num_blocks, off_diagonal_threads_per_block >> > (similarity_matrix, availibility_matrix, AS_max, responsibility_matrix, N);

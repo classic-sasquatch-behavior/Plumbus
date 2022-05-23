@@ -509,6 +509,15 @@ void Field::affinity_propagation() { //this is gonna take a really, really long 
 
 
 
+	cv::Mat coordinates(cv::Size(2, N), CV_32FC1);
+	cv::Mat row_vals(cv::Size(2, N), CV_32FC1);
+	cv::Mat col_vals(cv::Size(2, N), CV_32FC1);
+
+
+
+
+
+
 
 
 
@@ -528,6 +537,7 @@ void Field::affinity_propagation() { //this is gonna take a really, really long 
 	for (int i = 0; i < N; i++) {
 		Superpixel* superpixel = superpixel_at(i);
 		cv::Vec3b color = superpixel->average_color_HSV();
+		cv::Point mean = superpixel->mean();
 
 		//float H_val = (float)color[0];
 		float H_val = 0;
@@ -537,16 +547,34 @@ void Field::affinity_propagation() { //this is gonna take a really, really long 
 		H_vals.at<float>(i, 0) = H_val;
 		S_vals.at<float>(i, 0) = S_val;
 		V_vals.at<float>(i, 0) = V_val;
+
+		float row_val = (float)mean.y;
+		float col_val = (float)mean.x;
+
+		row_vals.at<float>(i, 0) = row_val;
+		col_vals.at<float>(i, 0) = col_val;
+
+
 	}
 
 	cv::normalize(H_vals, H_vals, 100, 0, cv::NORM_MINMAX, -1, cv::noArray());
 	cv::normalize(S_vals, S_vals, 100, 0, cv::NORM_MINMAX, -1, cv::noArray());
 	cv::normalize(V_vals, V_vals, 100, 0, cv::NORM_MINMAX, -1, cv::noArray());
 
+	cv::normalize(row_vals, row_vals, 100, 0, cv::NORM_MINMAX, -1, cv::noArray());
+	cv::normalize(col_vals, col_vals, 100, 0, cv::NORM_MINMAX, -1, cv::noArray());
+
+
 
 	std::vector<cv::Mat> channels = { H_vals, S_vals, V_vals };
 
+	std::vector<cv::Mat> mean_pairs = { row_vals, col_vals };
+
+
+
 	cv::hconcat(channels, colors);
+
+	cv::hconcat(mean_pairs, coordinates);
 
 	cv::Mat exemplars(cv::Size(1, N), CV_32SC1);
 
@@ -554,7 +582,7 @@ void Field::affinity_propagation() { //this is gonna take a really, really long 
 
 
 
-	GPU->affinity_propagation_color(colors, exemplars, N); //colors should be a host float mat, exemplars should be a host int mat
+	GPU->affinity_propagation_color(colors, coordinates, exemplars, N); //colors should be a host float mat, exemplars should be a host int mat
 
 
 

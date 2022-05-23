@@ -21,7 +21,7 @@ public:
 
 
 
-	void affinity_propagation_color(cv::Mat &colors, cv::Mat &exemplars, int N);
+	void affinity_propagation_color(cv::Mat &colors, cv::Mat &coordinates, cv::Mat &exemplars, int N);
 
 #pragma endregion
 

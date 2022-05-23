@@ -84,7 +84,7 @@ cv::Mat CudaInterface::fast_selective_blur(cv::Mat input, int steps, int thresho
 #pragma region affinity propagation
 
 
-void CudaInterface::affinity_propagation_color(cv::Mat& colors, cv::Mat& exemplars, int N) {
+void CudaInterface::affinity_propagation_color(cv::Mat& colors, cv::Mat &coordinates, cv::Mat& exemplars, int N) {
 
 
 
@@ -92,9 +92,9 @@ void CudaInterface::affinity_propagation_color(cv::Mat& colors, cv::Mat& exempla
 
 	cv::Size matrix_size(N, N);
 	float damping_factor = 0.9f;
-	int convergence_threshold = 10;
+	//int convergence_threshold = 10;
 	//int num_static_cycles_before_convergence = 3;
-	int max_cycles = 10;
+	int max_cycles = 500;
 	int matrix_type = CV_32FC1;
 
 
@@ -108,12 +108,13 @@ void CudaInterface::affinity_propagation_color(cv::Mat& colors, cv::Mat& exempla
 
 
 	//replace thrust with opencv
-	cv::cuda::GpuMat source(cv::Size(3, N), CV_32FC1); //actually, you should pass in input colors as a mat.
-	cv::cuda::GpuMat working_exemplars(cv::Size(1, N), CV_32SC1, cv::Scalar{0}); //likewise, you should pass working exemplars out as mat
+	cv::cuda::GpuMat color_source(cv::Size(3, N), CV_32FC1); 
+	cv::cuda::GpuMat coordinate_source(cv::Size(2, N), CV_32FC1);
+	cv::cuda::GpuMat working_exemplars(cv::Size(1, N), CV_32SC1, cv::Scalar{0}); 
 	
-	source.upload(colors);
+	color_source.upload(colors);
 
-
+	coordinate_source.upload(coordinates);
 
 
 
@@ -136,7 +137,7 @@ void CudaInterface::affinity_propagation_color(cv::Mat& colors, cv::Mat& exempla
 	
 	std::cout << "forming similarity matrix..." << std::endl;
 
-	form_similarity_matrix_color_launch(source, similarity_matrix, N);
+	form_similarity_matrix_color_launch(color_source, coordinate_source, similarity_matrix, N);
 
 
 
@@ -148,11 +149,11 @@ void CudaInterface::affinity_propagation_color(cv::Mat& colors, cv::Mat& exempla
 	double highest_val;
 	cv::minMaxIdx(h_sim_mat, &lowest_val, &highest_val);
 
-	float similarity_min = lowest_val * 2; //pretty good: lowest_val * 2 (from lowest_val * 1)
+	float similarity_min = lowest_val * 3; //pretty good: lowest_val * 2 (from lowest_val * 1)
 
 	similarity_matrix_diagonal.setTo(similarity_min);
 	similarity_matrix.upload(h_sim_mat);
-	util->print_gpu_mat(similarity_matrix, 5);
+	//util->print_gpu_mat(similarity_matrix, 5);
 
 	bool algorithm_converged = false;
 	bool initialize = true;
@@ -178,7 +179,7 @@ void CudaInterface::affinity_propagation_color(cv::Mat& colors, cv::Mat& exempla
 		}
 		dampen_messages_launch(previous_responsibility_matrix, responsibility_matrix, damping_factor, N); 
 		previous_availibility_matrix = responsibility_matrix;
-		util->print_gpu_mat(responsibility_matrix, 5);
+		//util->print_gpu_mat(responsibility_matrix, 5);
 
 
 
@@ -189,7 +190,7 @@ void CudaInterface::affinity_propagation_color(cv::Mat& colors, cv::Mat& exempla
 		update_availibility_matrix_launch(responsibility_matrix, availibility_matrix, N); 
 		dampen_messages_launch(previous_availibility_matrix, availibility_matrix, damping_factor, N);
 		previous_availibility_matrix = availibility_matrix;
-		util->print_gpu_mat(availibility_matrix, 5);
+		//util->print_gpu_mat(availibility_matrix, 5);
 
 
 
@@ -198,7 +199,7 @@ void CudaInterface::affinity_propagation_color(cv::Mat& colors, cv::Mat& exempla
 
 		std::cout << "updating critereon matrix..." << std::endl;
 		update_critereon_matrix_launch(responsibility_matrix, availibility_matrix, critereon_matrix, N);
-		util->print_gpu_mat(critereon_matrix, 5);
+		//util->print_gpu_mat(critereon_matrix, 5);
 
 
 
@@ -218,7 +219,15 @@ void CudaInterface::affinity_propagation_color(cv::Mat& colors, cv::Mat& exempla
 			working_exemplars.download(exemplars);
 		}
 	}
+
 	std::cout << "exemplars determined, function returning..." << std::endl;
+
+
+
+
+
+
+
 }
 
 
