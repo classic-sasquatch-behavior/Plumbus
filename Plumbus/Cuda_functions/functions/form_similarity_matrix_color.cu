@@ -24,23 +24,29 @@ __global__ void form_similarity_matrix_color_kernel(cv::cuda::PtrStepSzf src, cv
 	if (output_x >= N || output_y >= N) { return; }
 
 	float sum = 0;
-
+	
 	for (int channel = 0; channel < 3; channel++) {
-
+	
 		float val_a = src(output_x, channel);
 		float val_b = src(output_y, channel);
-
+	
 		float difference = val_a - val_b;
-
+	
 		float square = difference*difference;
 		//float square = abs(difference);
 		// 
 		//sum += sqrt(square);
 		sum += square;
-
+	
 	}
-
+	
 	float similarity = -sqrt(sum);
+
+
+
+
+
+
 	dst(output_y, output_x) = similarity;
 }
 
@@ -105,7 +111,7 @@ void form_similarity_matrix_color_launch(cv::cuda::GpuMat& color_source, cv::cud
 	form_similarity_matrix_color_kernel << <num_blocks, threads_per_block >> > (color_source, output, N);
 	cudaDeviceSynchronize();
 
-	form_similarity_matrix_coordinate_kernel << <num_blocks, threads_per_block >> > (coordinate_source, output, N);
-	cudaDeviceSynchronize();
+	//form_similarity_matrix_coordinate_kernel << <num_blocks, threads_per_block >> > (coordinate_source, output, N);
+	//cudaDeviceSynchronize();
 
 }

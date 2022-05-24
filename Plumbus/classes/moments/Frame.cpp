@@ -70,7 +70,7 @@ void Frame::generate_superpixels(cv::Mat input) {
 	cv::cvtColor(input, src_HSV, cv::COLOR_BGR2HSV);
 	const int NUM_ITERATIONS = 10; //original: 10 
 	const int MIN_ELEMENT_SIZE = 25; //original: 25 
-	const int REGION_SIZE = 10; //original: 10 
+	const int REGION_SIZE = 25; //original: 10 
 	const float RATIO = 0.075; //original: 0.075  
 
 	std::cout << "running ILSC superpixels..." << std::endl;
@@ -131,6 +131,7 @@ void Frame::generate_superpixels(cv::Mat input) {
 	}
 	timer->end("wake up superpixels"); //A LITTLE SLOW BUT FAST ENOUGH
 
+	//reactiviate this if you go back to naive
 	//timer->begin("connect neighbors");
 	//field()->connect_neighbors();
 	//timer->end("connect neighbors");

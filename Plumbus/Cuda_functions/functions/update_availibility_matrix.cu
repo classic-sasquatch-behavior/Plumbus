@@ -20,7 +20,7 @@ __global__ void availibility_matrix_sum_columns_kernel(cv::cuda::PtrStepSzf resp
 			column_sum += row_val;
 		}
 	}
-
+	//printf("%d \n", column_sum);
 	column_sums(0, col) = column_sum;
 }
 
@@ -53,6 +53,9 @@ __global__ void availibility_matrix_calculate_off_diagonal(cv::cuda::PtrStepSzf 
 }
 
 
+
+
+
 __global__ void availibility_matrix_calculate_diagonal(cv::cuda::PtrStepSzf responsibility_matrix, cv::cuda::PtrStepSzf column_sums, cv::cuda::PtrStepSzf availibility_matrix, int N) {
 	int diag = (blockIdx.x * blockDim.x) + threadIdx.x;
 
@@ -60,7 +63,8 @@ __global__ void availibility_matrix_calculate_diagonal(cv::cuda::PtrStepSzf resp
 
 	int self_responsibility = responsibility_matrix(diag, diag);
 	int responsibility_col_sum = column_sums(0, diag);
-	
+	//printf("%d \n", responsibility_col_sum);
+
 	if (self_responsibility > 0) {
 		responsibility_col_sum -= self_responsibility;
 	}

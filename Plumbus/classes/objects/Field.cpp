@@ -484,7 +484,12 @@ void Field::affinity_propagation() { //this is gonna take a really, really long 
 	int N = num_superpixels();
 	cv::Size matrix_size(N,N);
 
-	////to speed up: use sparse mats, use gpu gaussian blur
+
+
+
+
+
+	//to speed up: use sparse mats, use gpu gaussian blur
 	//std::vector<cv::Mat> prepared_hists;
 	//for (int i = 0; i < N; i++) {
 	//	cv::Mat hist = superpixel_at(i)->histogram();
@@ -503,7 +508,7 @@ void Field::affinity_propagation() { //this is gonna take a really, really long 
 
 
 
-	//redo, using mats instead of vectors
+
 
 
 
@@ -528,25 +533,25 @@ void Field::affinity_propagation() { //this is gonna take a really, really long 
 
 	cv::Mat colors(cv::Size(3, N), CV_32FC1);
 
-	cv::Mat H_vals(cv::Size(1, N), CV_32FC1);
-	cv::Mat S_vals(cv::Size(1, N), CV_32FC1);
-	cv::Mat V_vals(cv::Size(1, N), CV_32FC1);
+	cv::Mat B_vals(cv::Size(1, N), CV_32FC1);
+	cv::Mat G_vals(cv::Size(1, N), CV_32FC1);
+	cv::Mat R_vals(cv::Size(1, N), CV_32FC1);
 
 
 
 	for (int i = 0; i < N; i++) {
 		Superpixel* superpixel = superpixel_at(i);
-		cv::Vec3b color = superpixel->average_color_HSV();
+		cv::Vec3b color = superpixel->average_color_BGR();
 		cv::Point mean = superpixel->mean();
 
 		//float H_val = (float)color[0];
-		float H_val = 0;
-		float S_val = (float)color[1];
-		float V_val = (float)color[2];
+		float B_val = (float)color[0];
+		float G_val = (float)color[1];
+		float R_val = (float)color[2];
 
-		H_vals.at<float>(i, 0) = H_val;
-		S_vals.at<float>(i, 0) = S_val;
-		V_vals.at<float>(i, 0) = V_val;
+		B_vals.at<float>(i, 0) = B_val;
+		G_vals.at<float>(i, 0) = G_val;
+		R_vals.at<float>(i, 0) = R_val;
 
 		float row_val = (float)mean.y;
 		float col_val = (float)mean.x;
@@ -557,16 +562,16 @@ void Field::affinity_propagation() { //this is gonna take a really, really long 
 
 	}
 
-	cv::normalize(H_vals, H_vals, 100, 0, cv::NORM_MINMAX, -1, cv::noArray());
-	cv::normalize(S_vals, S_vals, 100, 0, cv::NORM_MINMAX, -1, cv::noArray());
-	cv::normalize(V_vals, V_vals, 100, 0, cv::NORM_MINMAX, -1, cv::noArray());
+	cv::normalize(B_vals, B_vals, 100, 0, cv::NORM_MINMAX, -1, cv::noArray());
+	cv::normalize(G_vals, G_vals, 100, 0, cv::NORM_MINMAX, -1, cv::noArray());
+	cv::normalize(R_vals, R_vals, 100, 0, cv::NORM_MINMAX, -1, cv::noArray());
 
 	cv::normalize(row_vals, row_vals, 100, 0, cv::NORM_MINMAX, -1, cv::noArray());
 	cv::normalize(col_vals, col_vals, 100, 0, cv::NORM_MINMAX, -1, cv::noArray());
 
 
 
-	std::vector<cv::Mat> channels = { H_vals, S_vals, V_vals };
+	std::vector<cv::Mat> channels = { B_vals, G_vals, R_vals };
 
 	std::vector<cv::Mat> mean_pairs = { row_vals, col_vals };
 

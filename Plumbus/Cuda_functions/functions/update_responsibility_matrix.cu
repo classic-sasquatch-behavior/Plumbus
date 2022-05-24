@@ -26,7 +26,8 @@ __global__ void find_row_max_kernel(cv::cuda::PtrStepSzf similarity_matrix, cv::
 
 	for (int col = 0; col < N; col++) {
 		float A_val_at_col = availibility_matrix(row, col);
-		float AS_val_at_col = A_val_at_col;
+		float S_val_at_col = similarity_matrix(row, col);
+		float AS_val_at_col = A_val_at_col + S_val_at_col;
 
 
 		//check AS
@@ -109,7 +110,6 @@ void update_responsibility_matrix_launch(cv::cuda::GpuMat& similarity_matrix, cv
 	dim3 off_diagonal_threads_per_block = { off_diagonal_block_dim_xy,off_diagonal_block_dim_xy,1 };
 
 
-	//calculate on-diagonal prep
 
 
 

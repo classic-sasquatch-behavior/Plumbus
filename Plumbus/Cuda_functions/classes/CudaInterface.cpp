@@ -90,12 +90,17 @@ void CudaInterface::affinity_propagation_color(cv::Mat& colors, cv::Mat &coordin
 
 	std::cout << "running affinity propagation..." << std::endl;
 
+	double lowest_val;
+	double highest_val;
 	cv::Size matrix_size(N, N);
-	float damping_factor = 0.9f;
-	//int convergence_threshold = 10;
-	//int num_static_cycles_before_convergence = 3;
-	int max_cycles = 500;
-	int matrix_type = CV_32FC1;
+	const int matrix_type = CV_32FC1;
+
+	const float preference_factor = 2;
+	const float damping_factor = 0.8f;
+	const int max_cycles = 10000;
+	const int max_const_cycles = 10;
+	const int const_threshold = 10;
+
 
 
 	cv::cuda::GpuMat similarity_matrix(matrix_size, matrix_type, cv::Scalar{0});
@@ -107,13 +112,12 @@ void CudaInterface::affinity_propagation_color(cv::Mat& colors, cv::Mat &coordin
 	cv::cuda::GpuMat previous_availibility_matrix(matrix_size, matrix_type, cv::Scalar{ 0 });
 
 
-	//replace thrust with opencv
+
 	cv::cuda::GpuMat color_source(cv::Size(3, N), CV_32FC1); 
 	cv::cuda::GpuMat coordinate_source(cv::Size(2, N), CV_32FC1);
 	cv::cuda::GpuMat working_exemplars(cv::Size(1, N), CV_32SC1, cv::Scalar{0}); 
 	
 	color_source.upload(colors);
-
 	coordinate_source.upload(coordinates);
 
 
@@ -121,12 +125,13 @@ void CudaInterface::affinity_propagation_color(cv::Mat& colors, cv::Mat &coordin
 
 
 
-	cv::Mat host_working_exemplars(cv::Size(1, N), CV_32SC1);
-	cv::Mat exemplar_details(cv::Size(1, N), CV_32SC1);
-	cv::Mat previous_exemplar_details(cv::Size(1, N), CV_32SC1);
 
 
 
+	cv::Mat exemplar_differences_through_time(cv::Size(1, N), CV_32SC1, cv::Scalar(0));
+	cv::Mat host_exemplars(cv::Size(1, N), CV_32SC1);
+	cv::Mat exemplar_differences(cv::Size(1, N), CV_32SC1, cv::Scalar(0));
+	cv::Mat previous_exemplar_differences(cv::Size(1, N), CV_32SC1, cv::Scalar(0));
 
 
 
@@ -145,52 +150,42 @@ void CudaInterface::affinity_propagation_color(cv::Mat& colors, cv::Mat &coordin
 	cv::Mat h_sim_mat(matrix_size, matrix_type);
 	similarity_matrix.download(h_sim_mat);
 	cv::Mat similarity_matrix_diagonal = h_sim_mat.diag(0);
-	double lowest_val;
-	double highest_val;
 	cv::minMaxIdx(h_sim_mat, &lowest_val, &highest_val);
-
-	float similarity_min = lowest_val * 3; //pretty good: lowest_val * 2 (from lowest_val * 1)
-
+	float similarity_min = lowest_val * preference_factor; //pretty good: lowest_val * 2 (from lowest_val * 1)
 	similarity_matrix_diagonal.setTo(similarity_min);
 	similarity_matrix.upload(h_sim_mat);
-	//util->print_gpu_mat(similarity_matrix, 5);
+	util->print_gpu_mat(similarity_matrix, 5);
 
 	bool algorithm_converged = false;
-	bool initialize = true;
-	//int cycles_without_change = 0;
 	int cycles = 0;
-
+	int const_cycles = 0;
+	bool initialize = true;
 
 
 	while (!algorithm_converged) {
 		std::cout << "begin cycle " << cycles << std::endl;
 
-
-
-
-
-
 		std::cout << "updating responsibility matrix..." << std::endl;
 		update_responsibility_matrix_launch(similarity_matrix, availibility_matrix, responsibility_matrix, N);
-		if(initialize){
-			previous_responsibility_matrix = responsibility_matrix;
-			previous_availibility_matrix = availibility_matrix;
+		if (initialize) {
 			initialize = false;
+			previous_responsibility_matrix = responsibility_matrix;
 		}
 		dampen_messages_launch(previous_responsibility_matrix, responsibility_matrix, damping_factor, N); 
-		previous_availibility_matrix = responsibility_matrix;
-		//util->print_gpu_mat(responsibility_matrix, 5);
+		previous_responsibility_matrix = responsibility_matrix;
+		util->print_gpu_mat(responsibility_matrix, 5);
 
 
 
 
-
-
+		//begin something fucked up
 		std::cout << "updating availibility matrix..." << std::endl;
 		update_availibility_matrix_launch(responsibility_matrix, availibility_matrix, N); 
+		util->print_gpu_mat(availibility_matrix, 5);
 		dampen_messages_launch(previous_availibility_matrix, availibility_matrix, damping_factor, N);
 		previous_availibility_matrix = availibility_matrix;
-		//util->print_gpu_mat(availibility_matrix, 5);
+		util->print_gpu_mat(availibility_matrix, 5);
+		//end something fucked up
 
 
 
@@ -199,23 +194,58 @@ void CudaInterface::affinity_propagation_color(cv::Mat& colors, cv::Mat &coordin
 
 		std::cout << "updating critereon matrix..." << std::endl;
 		update_critereon_matrix_launch(responsibility_matrix, availibility_matrix, critereon_matrix, N);
-		//util->print_gpu_mat(critereon_matrix, 5);
+		util->print_gpu_mat(critereon_matrix, 5);
 
+		std::cout << "extracting exemplars..." << std::endl;
+		extract_exemplars_launch(critereon_matrix, working_exemplars, N);
+		working_exemplars.download(host_exemplars);
 
+		for (int i = 0; i < N; i++) {
+			exemplar_differences.at<int>(i, 0) = 0;
+		}
+		for (int i = 0; i < N; i++) {
+			int exemplar_of_i = host_exemplars.at<int>(i, 0);
+			exemplar_differences.at<int>(exemplar_of_i, 0) += 1;
+			//std::cout << "exemplar of i: " << exemplar_of_i << std::endl;
+		}
+		for (int i = 0; i < N; i++) {
+			int val_a = exemplar_differences.at<int>(i, 0);
+			int val_b = previous_exemplar_differences.at<int>(i, 0);
+			exemplar_differences_through_time.at<int>(i, 0) = val_a - val_b;
 
-
-
-
-
-
-		std::cout << "end cycle " << cycles << std::endl << std::endl;
-		std::cout << "----------------" << std::endl << std::endl;
+		}
+		int difference_sum = 0;
+		for (int row = 0; row < N; row++) {
+			int val_at = exemplar_differences_through_time.at<int>(row, 0);
+			difference_sum += abs(val_at);
+			
+		}
+		for (int i = 0; i < N; i++) {
+			previous_exemplar_differences.at<int>(i, 0) = exemplar_differences.at<int>(i, 0);
+		}
+		std::cout << "change in exemplars found: " << difference_sum << std::endl;
+		//std::cout << "end cycle " << cycles << std::endl << std::endl;
+		//std::cout << "----------------" << std::endl << std::endl;
 		cycles++;
 
-		if (cycles >= max_cycles) {
+
+
+
+		//if (difference_sum <= const_threshold || double_derivative <= const_threshold) {
+		if (difference_sum <= const_threshold) {
+			const_cycles++;
+		}
+		else {
+			const_cycles = 0;
+		}
+		std::cout << "const cycles: " << const_cycles << std::endl;
+
+
+		if (cycles >= max_cycles || const_cycles >= max_const_cycles) {
 			algorithm_converged = true;
-			std::cout << "extracting exemplars..." << std::endl;
+			std::cout << "affintiy propagation ended at " << cycles << " cycles" << std::endl;
 			extract_exemplars_launch(critereon_matrix, working_exemplars, N);
+			working_exemplars.download(host_exemplars);
 			working_exemplars.download(exemplars);
 		}
 	}
