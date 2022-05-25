@@ -128,10 +128,10 @@ int main() {
 
 	//window->update_window("superpixels", window->frame()->superpixels());
 	window->update_window("selective blur", window->frame()->blurred());
-	window->update_window("regions", window->frame()->regions());
+	window->update_window("superpixels", window->frame()->superpixels());
 	//window->update_window("edge_overlay", window->frame()->edge_overlay());
 
-	cv::setMouseCallback("regions", listen_for_mouse, NULL);
+	//cv::setMouseCallback("regions", listen_for_mouse, NULL);
 
 
 	while (listen(cv::waitKey())) {
@@ -139,7 +139,7 @@ int main() {
 
 		//window->update_window("superpixels", window->frame()->superpixels());
 		window->update_window("selective blur", window->frame()->blurred());
-		window->update_window("regions", window->frame()->regions());
+		window->update_window("superpixels", window->frame()->superpixels());
 		//window->update_window("edge_overlay", window->frame()->edge_overlay());
 		
 

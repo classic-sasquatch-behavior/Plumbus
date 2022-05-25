@@ -272,6 +272,66 @@ void CudaInterface::affinity_propagation_color(cv::Mat& colors, cv::Mat &coordin
 
 #pragma endregion
 
+#pragma region superpixels
+
+
+cv::Mat CudaInterface::SLIC_superpixels(cv::Mat& input, int density, int iterations, int* num_superpixels_result) {
+
+
+	cv::Mat LAB_src;
+	cv::Mat host_labels(input.size(), CV_32SC1 );
+	cv::cvtColor(input, LAB_src, cv::COLOR_BGR2Lab);
+
+	int width = input.cols;
+	int height = input.rows;
+	int num_pixels = width * height;
+	int num_superpixels = num_pixels/(density*density); int& N = num_superpixels;
+	int superpixel_size = num_pixels / N;
+	int grid_interval = sqrt(superpixel_size);
+
+	int height_mod = height % grid_interval;
+	int width_mod = width % grid_interval;
+
+	int SP_rows = ((height - height_mod)/grid_interval) + std::min(1, height_mod);
+	int SP_cols = ((width - width_mod) / grid_interval) + std::min(1, width_mod);
+
+
+	std::vector<cv::Point> centers;
+
+	for (int row = 0; row < SP_rows; row++) {
+		for (int col = 0; col < SP_cols; col++) {
+			cv::Point center_location(col * grid_interval, row * grid_interval);
+			centers.push_back(center_location);
+		}
+	}
+
+
+
+
+
+
+
+
+
+
+}
+
+
+
+
+
+
+#pragma endregion
+
+
+
+
+
+
+
+
+
+
 #pragma region matrix operations
 
 void CudaInterface::add(cv::Mat &input_a, cv::Mat &input_b, cv::Mat &output) {

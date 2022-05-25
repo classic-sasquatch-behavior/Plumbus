@@ -39,33 +39,56 @@ void Frame::run_filters() {
 	_blurred = GPU->selective_blur(source(), 50, 10, 5);
 	//timer->end("selective blur");
 
-	std::cout << "begin generaate superpixels" << std::endl;
+	std::cout << "begin generate superpixels" << std::endl;
 	//timer->begin("generate superpixels");
 	generate_superpixels(blurred());
 	//timer->end("generate superpixels");
 
-	find_regions();
+	//find_regions();
 
 	//timer->begin("draw superpixels");
 	_superpixels = draw_superpixels(field());
 	//timer->end("draw superpixels");
 
 	//timer->begin("find edges");
-	_edges = find_edges(blurred());
+	//_edges = find_edges(blurred());
 	//timer->end("find edges");
 
 	//timer->begin("overlay edges");
-	_edge_overlay = binary_overlay(superpixels(), edges());
+	//_edge_overlay = binary_overlay(superpixels(), edges());
 	//timer->end("overlay edges");
 
-	_regions = draw_regions(field());
+	//_regions = draw_regions(field());
 }
 
 void Frame::identify_local_objects() {
 
 }
 
+
+
+
+
+
+
 void Frame::generate_superpixels(cv::Mat input) {
+
+	const int density = 5; //[1, 20]
+	const int iterations = 10;
+
+	int N = 0;
+	cv::Mat labels = GPU->SLIC_superpixels(input, density, iterations, &N);
+	Field* new_field = new Field(this, labels);
+	set_field(new_field);
+
+
+
+
+
+
+
+
+
 	cv::Mat src_HSV;
 	cv::cvtColor(input, src_HSV, cv::COLOR_BGR2HSV);
 	const int NUM_ITERATIONS = 10; //original: 10 
@@ -95,6 +118,25 @@ void Frame::generate_superpixels(cv::Mat input) {
 	Field* new_field = new Field(this, labels);
 	set_field(new_field);
 	//FAST
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 	//FAST
@@ -138,12 +180,14 @@ void Frame::generate_superpixels(cv::Mat input) {
 }
 
 void Frame::find_regions() {
-	timer->begin("affinity propagation");
-	field()->affinity_propagation();
-	timer->end("affinity propagation");
 
 
 
+
+
+	//timer->begin("affinity propagation");
+	//field()->affinity_propagation();
+	//timer->end("affinity propagation");
 
 
 	//timer->begin("form regions");

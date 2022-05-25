@@ -16,6 +16,8 @@ public:
 	cv::Mat fast_selective_blur(cv::Mat input, int steps, int threshold, int kernel_size);
 
 	std::vector<thrust::pair<int, int>> find_borders(cv::Mat labels);
+
+	cv::Mat SLIC_superpixels(cv::Mat& input, int density, int iterations, int* num_superpixels);
 	
 #pragma region affinity propagation
 
