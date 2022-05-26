@@ -289,11 +289,8 @@ cv::Mat CudaInterface::SLIC_superpixels(cv::Mat& input, int density, int iterati
 	int superpixel_size = num_pixels / N;
 	int grid_interval = sqrt(superpixel_size);
 
-	int height_mod = height % grid_interval;
-	int width_mod = width % grid_interval;
-
-	int SP_rows = ((height - height_mod)/grid_interval) + std::min(1, height_mod);
-	int SP_cols = ((width - width_mod) / grid_interval) + std::min(1, width_mod);
+	int SP_rows = height / grid_interval;
+	int SP_cols = width / grid_interval;
 
 
 
@@ -397,13 +394,94 @@ cv::Mat CudaInterface::SLIC_superpixels(cv::Mat& input, int density, int iterati
 	}
 
 
-	//now we have the centers initialized. now what's left is to repeat the process of 
-	//1)  pixels find "nearest" center
-	//2) centers shift to mean of pixel coordinates
-	//this should be in a kernel
 
-	//make "assign_centers_to_pixels.cu"
-	//make "calculate_mean_of_centers.cu"
+
+
+
+
+
+
+	//create sector LUT
+	cv::Mat sector_LUT(cv::Size(num_superpixels * 9 * 2, 1), CV_32SC1);
+	std::vector<std::vector<int[2]>> process_neighbor_coords;
+
+	for (int row = 0; row < SP_rows; row++) {
+		for (int col = 0; col < SP_cols; col++) {
+
+			int sector_id = (SP_cols * row) + col;
+			int LUT_index = sector_id * 9 * 2;
+			std::vector<int[2]> neighbor_coords;
+
+			for (int irow = -1; irow <= 1; irow++) {
+				for (int icol = -1; icol <= 1; icol++) {
+					int target_row = row + irow;
+					int target_col = col + icol;
+
+					if (target_row < 0 || target_col < 0 || target_row >= SP_rows || target_col >= SP_cols) {
+						neighbor_coords.push_back({ -1,-1 });
+					}
+					else {
+						neighbor_coords.push_back({ target_row, target_col });
+					}
+				}
+			}
+			process_neighbor_coords.push_back(neighbor_coords);
+		}
+	}
+
+	//convert vector to mat
+
+
+
+
+
+
+
+
+
+
+
+
+	cv::cuda::GpuMat d_src, d_labels, d_row_vals, d_col_vals, d_sector_LUT;
+	d_src.upload(LAB_src);
+	d_labels.upload(host_labels);
+	d_row_vals.upload(row_vals);
+	d_col_vals.upload(col_vals);
+	d_sector_LUT.upload(sector_LUT);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	//SLIC algorithm main loop
+	bool converged = false;
+	while (!converged) {
+
+		find_labels_launch(d_src, d_labels, d_row_vals, d_col_vals, d_sector_LUT, density, grid_interval); 
+
+
+
+		update_centers_launch(d_labels, d_row_vals, d_col_vals);
+
+
+
+		if () {
+			converged = true;
+		}
+
+
+
+
+	}
 
 
 

@@ -197,6 +197,8 @@
       <CodeGeneration Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">compute_86,sm_86</CodeGeneration>
       <FastMath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</FastMath>
     </CudaCompile>
+    <CudaCompile Include="Cuda_functions\functions\SLIC\find_labels.cu" />
+    <CudaCompile Include="Cuda_functions\functions\SLIC\update_centers.cu" />
     <CudaCompile Include="Cuda_functions\functions\SP processing\find_borders.cu">
       <CodeGeneration Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">compute_86,sm_86</CodeGeneration>
       <GenerateLineInfo Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</GenerateLineInfo>
@@ -230,8 +232,10 @@
     <ClInclude Include="Cuda_functions\headers\extract_exemplars.cuh" />
     <ClInclude Include="Cuda_functions\headers\fast_selective_blur.cuh" />
     <ClInclude Include="Cuda_functions\headers\find_borders.cuh" />
+    <ClInclude Include="Cuda_functions\headers\find_labels.cuh" />
     <ClInclude Include="Cuda_functions\headers\presort_matrix_ap.cuh" />
     <ClInclude Include="Cuda_functions\headers\update_availibility_matrix.cuh" />
+    <ClInclude Include="Cuda_functions\headers\update_centers.cuh" />
     <ClInclude Include="Cuda_functions\headers\update_critereon_matrix.cuh" />
     <ClInclude Include="Cuda_functions\headers\update_responsibility_matrix.cuh" />
     <ClInclude Include="Cuda_functions\headers\form_similarity_matrix.cuh" />
