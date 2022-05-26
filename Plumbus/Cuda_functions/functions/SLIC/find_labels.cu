@@ -105,22 +105,7 @@ __global__ void find_labels_kernel(cv::cuda::PtrStepSz<cv::Vec3b> src, cv::cuda:
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 void find_labels_launch(cv::cuda::GpuMat& src, cv::cuda::GpuMat& labels, cv::cuda::GpuMat& row_vals, cv::cuda::GpuMat& col_vals, cv::cuda::GpuMat& sector_LUT, int density, int k_step) {
-
-
 
 	int rows = row_vals.rows;
 	int cols = row_vals.cols;

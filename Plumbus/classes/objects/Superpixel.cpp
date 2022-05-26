@@ -64,7 +64,7 @@ void Superpixel::compute_average_color() {
 
 
 
-
+	//calculate hsv values as well I guess
 
 	color_sum = { 0,0,0 };
 	for (int i = 0; i < num_points(); i++) {

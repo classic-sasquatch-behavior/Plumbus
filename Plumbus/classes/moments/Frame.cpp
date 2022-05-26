@@ -87,7 +87,7 @@ void Frame::generate_superpixels(cv::Mat input) {
 
 
 
-
+	//old init, delete later
 
 	cv::Mat src_HSV;
 	cv::cvtColor(input, src_HSV, cv::COLOR_BGR2HSV);
@@ -109,15 +109,13 @@ void Frame::generate_superpixels(cv::Mat input) {
 	}
 	timer->end("opencv superpixel function"); //EXTREMELY SLOW
 
-
-	//FAST
 	int num_superpixels = superpixels->getNumberOfSuperpixels();
 	cv::Mat labels;
 	superpixels->getLabels(labels);
 	cv::Mat src = source();
 	Field* new_field = new Field(this, labels);
 	set_field(new_field);
-	//FAST
+
 
 
 

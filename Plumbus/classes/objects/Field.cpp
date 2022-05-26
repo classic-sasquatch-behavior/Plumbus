@@ -2,6 +2,8 @@
 #include"../../classes.h"
 #include"../../config.h"
 
+
+#pragma region structors
 Field::Field(Frame* frame, cv::Mat labels) {
 	_frame = frame;
 	_labels = labels;
@@ -10,43 +12,7 @@ Field::Field(Frame* frame, cv::Mat labels) {
 Field::~Field() {
 
 }
-
-void Field::calculate_average_region_colors() {
-	for (Region* region : all_regions()) {
-		std::vector<int> color_sum = { 0,0,0 };
-
-		for (Superpixel* constituent : region->all_constituents()) {
-			cv::Vec3b constituent_color = constituent->average_color_BGR();
-			for (int channel = 0; channel < 3; channel++) {
-				color_sum[channel] += constituent_color[channel];
-			}
-		}
-
-		cv::Vec3b color_out;
-		for (int channel = 0; channel < 3; channel++) {
-			color_out[channel] = color_sum[channel] / region->num_constituents();
-		}
-		/*region->set_average_color(color_out);*/
-		region->set_average_color(colorwheel->get_color(32));
-	}
-}
-
-void Field::prune_connections() {
-
-	for (Superpixel* focus : all_superpixels()) {
-		std::vector<Superpixel*> new_neighbors;
-
-		cv::Point focus_id = focus->region()->id();
-		for (Superpixel* target : focus->all_neighbors()) {
-			cv::Point target_id = target->region()->id();
-
-			if (focus_id != target_id && target->region()->num_constituents() > 0) {
-				new_neighbors.push_back(target);
-			}
-		}
-		focus->set_neighbors(new_neighbors);
-	}
-}
+#pragma endregion
 
 #pragma region refine_region_sequence
 
@@ -443,6 +409,44 @@ void Field::refine_region_sequence_naive() {
 
 #pragma endregion
 
+#pragma region useful operations
+void Field::calculate_average_region_colors() {
+	for (Region* region : all_regions()) {
+		std::vector<int> color_sum = { 0,0,0 };
+
+		for (Superpixel* constituent : region->all_constituents()) {
+			cv::Vec3b constituent_color = constituent->average_color_BGR();
+			for (int channel = 0; channel < 3; channel++) {
+				color_sum[channel] += constituent_color[channel];
+			}
+		}
+
+		cv::Vec3b color_out;
+		for (int channel = 0; channel < 3; channel++) {
+			color_out[channel] = color_sum[channel] / region->num_constituents();
+		}
+		/*region->set_average_color(color_out);*/
+		region->set_average_color(colorwheel->get_color(32));
+	}
+}
+
+void Field::prune_connections() {
+
+	for (Superpixel* focus : all_superpixels()) {
+		std::vector<Superpixel*> new_neighbors;
+
+		cv::Point focus_id = focus->region()->id();
+		for (Superpixel* target : focus->all_neighbors()) {
+			cv::Point target_id = target->region()->id();
+
+			if (focus_id != target_id && target->region()->num_constituents() > 0) {
+				new_neighbors.push_back(target);
+			}
+		}
+		focus->set_neighbors(new_neighbors);
+	}
+}
+
 void Field::connect_neighbors() {
 	std::vector<thrust::pair<int, int>> pairs = GPU->find_borders(labels());
 
@@ -469,14 +473,9 @@ void Field::form_regions() {
 		index++;
 	}
 }
+#pragma endregion
 
-
-
-
-
-
-
-
+#pragma region affinity propagation
 void Field::affinity_propagation() { //this is gonna take a really, really long time like this lmao
 	
 	std::cout << "preparing for affinity propagation..." << std::endl;
@@ -626,7 +625,7 @@ void Field::affinity_propagation() { //this is gonna take a really, really long 
 	set_regions(new_regions);
 	calculate_average_region_colors();
 }
-
+#pragma endregion
 
 
 

@@ -432,15 +432,15 @@ cv::Mat CudaInterface::SLIC_superpixels(cv::Mat& input, int density, int iterati
 	//convert vector to mat
 
 
+	for (int center = 0; center < process_neighbor_coords.size(); center++) {
+		std::vector<int[2]> center_neighbors = process_neighbor_coords[center];
+		for (int neighbor = 0; neighbor < center_neighbors.size(); neighbor++) {
+			int neighbor_coords[2] = { center_neighbors[neighbor][0], center_neighbors[neighbor][1] };
 
-
-
-
-
-
-
-
-
+			sector_LUT.at<int>(0, (center * 9 * 2) + neighbor) = neighbor_coords[0];
+			sector_LUT.at<int>(0, (center * 9 * 2) + neighbor + 1) = neighbor_coords[1];
+		}
+	}
 
 	cv::cuda::GpuMat d_src, d_labels, d_row_vals, d_col_vals, d_sector_LUT;
 	d_src.upload(LAB_src);
@@ -448,14 +448,6 @@ cv::Mat CudaInterface::SLIC_superpixels(cv::Mat& input, int density, int iterati
 	d_row_vals.upload(row_vals);
 	d_col_vals.upload(col_vals);
 	d_sector_LUT.upload(sector_LUT);
-
-
-
-
-
-
-
-
 
 
 
