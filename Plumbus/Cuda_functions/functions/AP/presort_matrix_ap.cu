@@ -1,5 +1,5 @@
-#include"../../cuda_includes.h"
-#include"../../config.h"
+#include"../../../cuda_includes.h"
+#include"../../../config.h"
 
 
 

@@ -197,17 +197,17 @@
     <ClInclude Include="Cuda_functions\headers\presort_matrix_ap.cuh" />
   </ItemGroup>
   <ItemGroup>
-    <CudaCompile Include="Cuda_functions\functions\selective_blur.cu" />
-    <CudaCompile Include="Cuda_functions\functions\fast_selective_blur.cu" />
-    <CudaCompile Include="Cuda_functions\functions\find_borders.cu" />
-    <CudaCompile Include="Cuda_functions\functions\matrix_operations.cu" />
-    <CudaCompile Include="Cuda_functions\functions\form_similarity_matrix.cu" />
-    <CudaCompile Include="Cuda_functions\functions\update_responsibility_matrix.cu" />
-    <CudaCompile Include="Cuda_functions\functions\update_availibility_matrix.cu" />
-    <CudaCompile Include="Cuda_functions\functions\update_critereon_matrix.cu" />
-    <CudaCompile Include="Cuda_functions\functions\extract_exemplars.cu" />
-    <CudaCompile Include="Cuda_functions\functions\form_similarity_matrix_color.cu" />
-    <CudaCompile Include="Cuda_functions\functions\dampen_messages.cu" />
-    <CudaCompile Include="Cuda_functions\functions\presort_matrix_ap.cu" />
+    <CudaCompile Include="Cuda_functions\functions\misc\selective_blur.cu" />
+    <CudaCompile Include="Cuda_functions\functions\misc\fast_selective_blur.cu" />
+    <CudaCompile Include="Cuda_functions\functions\SP processing\find_borders.cu" />
+    <CudaCompile Include="Cuda_functions\functions\misc\matrix_operations.cu" />
+    <CudaCompile Include="Cuda_functions\functions\AP\form_similarity_matrix.cu" />
+    <CudaCompile Include="Cuda_functions\functions\AP\update_responsibility_matrix.cu" />
+    <CudaCompile Include="Cuda_functions\functions\AP\update_availibility_matrix.cu" />
+    <CudaCompile Include="Cuda_functions\functions\AP\update_critereon_matrix.cu" />
+    <CudaCompile Include="Cuda_functions\functions\AP\extract_exemplars.cu" />
+    <CudaCompile Include="Cuda_functions\functions\AP\form_similarity_matrix_color.cu" />
+    <CudaCompile Include="Cuda_functions\functions\AP\dampen_messages.cu" />
+    <CudaCompile Include="Cuda_functions\functions\AP\presort_matrix_ap.cu" />
   </ItemGroup>
 </Project>

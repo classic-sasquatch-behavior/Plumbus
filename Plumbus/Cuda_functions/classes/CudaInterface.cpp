@@ -296,14 +296,123 @@ cv::Mat CudaInterface::SLIC_superpixels(cv::Mat& input, int density, int iterati
 	int SP_cols = ((width - width_mod) / grid_interval) + std::min(1, width_mod);
 
 
-	std::vector<cv::Point> centers;
 
+
+	cv::Mat row_vals( cv::Size(SP_cols, SP_rows), CV_32SC1 );
+	cv::Mat col_vals( cv::Size(SP_cols, SP_rows), CV_32SC1 );
+
+
+
+	//initialize centers
 	for (int row = 0; row < SP_rows; row++) {
 		for (int col = 0; col < SP_cols; col++) {
-			cv::Point center_location(col * grid_interval, row * grid_interval);
-			centers.push_back(center_location);
+			int center_row = (row * grid_interval) + round(grid_interval/2);
+			int center_col = (col * grid_interval) + round(grid_interval / 2);
+			row_vals.at<int>(row, col) = center_row;
+			col_vals.at<int>(row, col) = center_col;
 		}
 	}
+
+
+	//gradient descent
+	for (int row = 0; row < SP_rows; row++) {
+		for (int col = 0; col < SP_cols; col++) {
+			int focus_row = row_vals.at<int>(row, col);
+			int focus_col = col_vals.at<int>(row, col);
+
+			cv::Vec3b focus_color = LAB_src.at<cv::Vec3b>(focus_row, focus_col);
+			int gradient[3][3];
+
+
+			for (int irow = -1; irow <= 1; irow++ ) {
+				for (int icol = -1; icol <= 1; icol++) {
+					int target_row = focus_row + irow;
+					int target_col = focus_col + icol;
+					if (target_row < 0 || target_col < 0 || target_row >= height || target_col >= width) { break; }
+
+
+					int search_vals[4][2] = { {target_row, target_col + 1},{target_row, target_col - 1},{target_row + 1, target_col},{target_row - 1, target_col} };
+
+					cv::Vec3b target_color = LAB_src.at<cv::Vec3b>(target_row, target_col);
+
+
+					int result_sum = 0;
+
+					for (int i = 0; i < 2; i++) {
+						int search_row_pos = search_vals[i * 2][0];
+						int search_col_pos = search_vals[i * 2][1];
+
+						int search_row_neg = search_vals[(i* 2) + 1][0];
+						int search_col_neg = search_vals[(i * 2) + 1][1];
+
+
+						if (int rpos, cpos, rneg, cneg = search_row_pos, search_col_pos, search_row_neg, search_col_neg; 
+							rpos < 0 || cpos < 0 || rpos >= height || cpos >= width || rneg < 0 || cneg < 0 || rneg >= height || cneg >= width) { break; }
+						
+						cv::Vec3b search_color_pos = LAB_src.at<cv::Vec3b>(search_row_pos, search_col_pos);
+
+						cv::Vec3b search_color_neg = LAB_src.at<cv::Vec3b>(search_row_neg, search_col_neg);
+
+
+						for (int channel = 0; channel < 3; channel++) {
+							int search_color_pos_channel = search_color_pos[channel];
+							int search_color_neg_channel = search_color_neg[channel];
+
+							int channel_result = search_color_pos_channel - search_color_neg_channel;
+
+							result_sum += (channel_result*channel_result);
+
+						}
+					}
+
+					gradient[irow + 1][icol + 1] = result_sum;
+				}
+			}
+
+
+			int lowest_gradient = INF;
+			int lowest_grad_position[2] = { 0,0 };
+
+			for (int irow = 0; irow < 3; irow++) {
+				for (int icol = 0; icol < 3; icol++) {
+					int this_gradient = gradient[irow][icol];
+
+					if (this_gradient < lowest_gradient) {
+						lowest_gradient = this_gradient;
+						lowest_grad_position[0] = irow - 1;
+						lowest_grad_position[1] = icol - 1;
+					}
+				}
+			}
+
+			int past_row = row_vals.at<int>(row, col);
+			int past_col = col_vals.at<int>(row, col);
+
+			int new_row = past_row + lowest_grad_position[0];
+			int new_col = past_col + lowest_grad_position[1];
+
+			row_vals.at<int>(row, col) = new_row;
+			col_vals.at<int>(row, col) = new_col;
+		}
+	}
+
+
+	//now we have the centers initialized. now what's left is to repeat the process of 
+	//1)  pixels find "nearest" center
+	//2) centers shift to mean of pixel coordinates
+	//this should be in a kernel
+
+	//make "assign_centers_to_pixels.cu"
+	//make "calculate_mean_of_centers.cu"
+
+
+
+
+
+
+
+
+
 
 
 
