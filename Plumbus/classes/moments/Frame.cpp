@@ -74,71 +74,15 @@ void Frame::identify_local_objects() {
 void Frame::generate_superpixels(cv::Mat input) {
 
 	const int density = 5; //[1, 20]
-	const int iterations = 10;
 
+	std::cout << "begin SLIC" << std::endl;
 	int N = 0;
-	cv::Mat labels = GPU->SLIC_superpixels(input, density, iterations, &N);
+	cv::Mat labels = GPU->SLIC_superpixels(input, density, &N);
 	Field* new_field = new Field(this, labels);
 	set_field(new_field);
-
-
-
-
-
-
-
-	//old init, delete later
-
-	cv::Mat src_HSV;
-	cv::cvtColor(input, src_HSV, cv::COLOR_BGR2HSV);
-	const int NUM_ITERATIONS = 10; //original: 10 
-	const int MIN_ELEMENT_SIZE = 25; //original: 25 
-	const int REGION_SIZE = 25; //original: 10 
-	const float RATIO = 0.075; //original: 0.075  
-
-	std::cout << "running ILSC superpixels..." << std::endl;
-	timer->begin("opencv superpixel function"); //EXTREMELY SLOW //try other opencv implimenations (3-4 others), then see if you can fix the github one, then try to build your own
-	cv::Ptr<cv::ximgproc::SuperpixelLSC> superpixels = cv::ximgproc::createSuperpixelLSC(src_HSV, REGION_SIZE, RATIO);
-
-	//timer->begin("cv iterate");
-	superpixels->iterate(NUM_ITERATIONS);
-	//timer->end("cv iterate");
-
-	if (MIN_ELEMENT_SIZE > 0) {
-		superpixels->enforceLabelConnectivity(MIN_ELEMENT_SIZE);
-	}
-	timer->end("opencv superpixel function"); //EXTREMELY SLOW
-
-	int num_superpixels = superpixels->getNumberOfSuperpixels();
-	cv::Mat labels;
-	superpixels->getLabels(labels);
-	cv::Mat src = source();
-	Field* new_field = new Field(this, labels);
-	set_field(new_field);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 	//FAST
-	for (int superpixel = 0; superpixel < num_superpixels; superpixel++) {
+	for (int superpixel = 0; superpixel < N; superpixel++) {
 		Superpixel* new_superpixel = new Superpixel(new_field);
 		new_field->add_superpixel(new_superpixel);
 	}

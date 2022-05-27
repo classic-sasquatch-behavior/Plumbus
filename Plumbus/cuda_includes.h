@@ -26,3 +26,9 @@
 
 //std
 #include"standard_includes.h"
+
+
+
+
+typedef cv::cuda::PtrStepSzi iptr;
+typedef cv::cuda::PtrStepSzf fptr;

@@ -275,8 +275,9 @@ void CudaInterface::affinity_propagation_color(cv::Mat& colors, cv::Mat &coordin
 #pragma region superpixels
 
 
-cv::Mat CudaInterface::SLIC_superpixels(cv::Mat& input, int density, int iterations, int* num_superpixels_result) {
+cv::Mat CudaInterface::SLIC_superpixels(cv::Mat& input, int density, int* num_superpixels_result) {
 
+	const int threshold = 10;
 
 	cv::Mat LAB_src;
 	cv::Mat host_labels(input.size(), CV_32SC1 );
@@ -292,14 +293,14 @@ cv::Mat CudaInterface::SLIC_superpixels(cv::Mat& input, int density, int iterati
 	int SP_rows = height / grid_interval;
 	int SP_cols = width / grid_interval;
 
-
+	
 
 
 	cv::Mat row_vals( cv::Size(SP_cols, SP_rows), CV_32SC1 );
 	cv::Mat col_vals( cv::Size(SP_cols, SP_rows), CV_32SC1 );
 
 
-
+	std::cout << "SLIC initializing centers..." << std::endl;
 	//initialize centers
 	for (int row = 0; row < SP_rows; row++) {
 		for (int col = 0; col < SP_cols; col++) {
@@ -310,6 +311,8 @@ cv::Mat CudaInterface::SLIC_superpixels(cv::Mat& input, int density, int iterati
 		}
 	}
 
+
+	std::cout << "SLIC performing gradient descent..." << std::endl;
 
 	//gradient descent
 	for (int row = 0; row < SP_rows; row++) {
@@ -343,8 +346,8 @@ cv::Mat CudaInterface::SLIC_superpixels(cv::Mat& input, int density, int iterati
 						int search_col_neg = search_vals[(i * 2) + 1][1];
 
 
-						if (int rpos, cpos, rneg, cneg = search_row_pos, search_col_pos, search_row_neg, search_col_neg; 
-							rpos < 0 || cpos < 0 || rpos >= height || cpos >= width || rneg < 0 || cneg < 0 || rneg >= height || cneg >= width) { break; }
+						if (search_row_pos < 0 || search_col_pos < 0 || search_row_pos >= height || search_col_pos >= width || 
+							search_row_neg < 0 || search_col_neg < 0 || search_row_neg >= height || search_col_neg >= width) { break; }
 						
 						cv::Vec3b search_color_pos = LAB_src.at<cv::Vec3b>(search_row_pos, search_col_pos);
 
@@ -399,30 +402,34 @@ cv::Mat CudaInterface::SLIC_superpixels(cv::Mat& input, int density, int iterati
 
 
 
-
+	std::cout << "SLIC creating sector LUT..." << std::endl;
 
 	//create sector LUT
 	cv::Mat sector_LUT(cv::Size(num_superpixels * 9 * 2, 1), CV_32SC1);
-	std::vector<std::vector<int[2]>> process_neighbor_coords;
+	std::vector<std::vector<std::vector<int>>> process_neighbor_coords;
 
 	for (int row = 0; row < SP_rows; row++) {
 		for (int col = 0; col < SP_cols; col++) {
 
 			int sector_id = (SP_cols * row) + col;
 			int LUT_index = sector_id * 9 * 2;
-			std::vector<int[2]> neighbor_coords;
+			std::vector<std::vector<int>> neighbor_coords;
 
 			for (int irow = -1; irow <= 1; irow++) {
 				for (int icol = -1; icol <= 1; icol++) {
 					int target_row = row + irow;
 					int target_col = col + icol;
+					int neighbor_result[2] = {-1, -1};
 
 					if (target_row < 0 || target_col < 0 || target_row >= SP_rows || target_col >= SP_cols) {
-						neighbor_coords.push_back({ -1,-1 });
+						continue;
 					}
 					else {
-						neighbor_coords.push_back({ target_row, target_col });
+						neighbor_result[0] = target_row;
+						neighbor_result[1] = target_col;
+
 					}
+					neighbor_coords.push_back({ neighbor_result[0], neighbor_result[1] });
 				}
 			}
 			process_neighbor_coords.push_back(neighbor_coords);
@@ -433,7 +440,7 @@ cv::Mat CudaInterface::SLIC_superpixels(cv::Mat& input, int density, int iterati
 
 
 	for (int center = 0; center < process_neighbor_coords.size(); center++) {
-		std::vector<int[2]> center_neighbors = process_neighbor_coords[center];
+		std::vector<std::vector<int>> center_neighbors = process_neighbor_coords[center];
 		for (int neighbor = 0; neighbor < center_neighbors.size(); neighbor++) {
 			int neighbor_coords[2] = { center_neighbors[neighbor][0], center_neighbors[neighbor][1] };
 
@@ -442,57 +449,47 @@ cv::Mat CudaInterface::SLIC_superpixels(cv::Mat& input, int density, int iterati
 		}
 	}
 
-	cv::cuda::GpuMat d_src, d_labels, d_row_vals, d_col_vals, d_sector_LUT;
-	d_src.upload(LAB_src);
+
+	std::cout << "SLIC uploading mats..." << std::endl;
+	cv::cuda::GpuMat d_labels, d_row_vals, d_col_vals, d_sector_LUT;
+	//d_src.upload(LAB_src);
 	d_labels.upload(host_labels);
 	d_row_vals.upload(row_vals);
 	d_col_vals.upload(col_vals);
 	d_sector_LUT.upload(sector_LUT);
 
+	std::vector<cv::Mat> split_me;
+	cv::split(LAB_src, split_me);
+
+	cv::cuda::GpuMat d_src_L, d_src_A, d_src_B;
+	d_src_L.upload(split_me[0]);
+	d_src_A.upload(split_me[1]);
+	d_src_B.upload(split_me[2]);
 
 
 
-
-
+	std::cout << "SLIC begin main loop..." << std::endl;
 	//SLIC algorithm main loop
 	bool converged = false;
 	while (!converged) {
 
-		find_labels_launch(d_src, d_labels, d_row_vals, d_col_vals, d_sector_LUT, density, grid_interval); 
+		std::cout << "SLIC finding labels..." << std::endl;
+		find_labels_launch(d_src_L, d_src_A, d_src_B, d_labels, d_row_vals, d_col_vals, d_sector_LUT, density, grid_interval); 
 
+		std::cout << "SLIC updating centers..." << std::endl;
+		int average_displacement = 0;
+		update_centers_launch(d_labels, d_row_vals, d_col_vals, &average_displacement);
 
-
-		update_centers_launch(d_labels, d_row_vals, d_col_vals);
-
-
-
-		if () {
+		std::cout << "SLIC average displacement: " << average_displacement << std::endl;
+		if (average_displacement <= threshold) {
 			converged = true;
 		}
-
-
-
-
 	}
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+	d_labels.download(host_labels);
+	*num_superpixels_result = num_superpixels;
+	return host_labels;
 }
 
 
