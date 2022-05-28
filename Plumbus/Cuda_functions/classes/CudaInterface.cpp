@@ -404,6 +404,23 @@ cv::Mat CudaInterface::SLIC_superpixels(cv::Mat& input, int density, int* num_su
 
 	std::cout << "SLIC creating sector LUT..." << std::endl;
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 	//create sector LUT
 	cv::Mat sector_LUT(cv::Size(num_superpixels * 9 * 2, 1), CV_32SC1);
 	std::vector<std::vector<std::vector<int>>> process_neighbor_coords;
@@ -448,6 +465,36 @@ cv::Mat CudaInterface::SLIC_superpixels(cv::Mat& input, int density, int* num_su
 			sector_LUT.at<int>(0, (center * 9 * 2) + neighbor + 1) = neighbor_coords[1];
 		}
 	}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 	std::cout << "SLIC uploading mats..." << std::endl;

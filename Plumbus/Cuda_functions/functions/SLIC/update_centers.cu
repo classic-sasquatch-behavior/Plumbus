@@ -5,11 +5,23 @@
 __global__ void condense_labels_kernel(iptr labels, iptr row_sums, iptr col_sums, iptr num_sums) {
 
 	int row = (blockIdx.y * blockDim.y) + threadIdx.y;
-	int col = (blockIdx.x * blockIdx.x) + threadIdx.x;
+	int col = (blockIdx.x * blockDim.x) + threadIdx.x;
 
-	if (row < 0 || col < 0 || row >= labels.rows || col >= labels.cols) { return; }
+	if (row >= labels.rows || col >= labels.cols) { return; }
 
 	int label = labels(row, col);
+
+	if (label >= labels.cols) {
+		printf("label out of bounds: too high \n");
+	}
+
+	if (label < 0) {
+		printf("label out of bounds: too low \n");
+	}
+
+
+
+
 
 	atomicAdd(&row_sums(0, label), row);
 	atomicAdd(&col_sums(0, label), col);
@@ -88,7 +100,11 @@ void update_centers_launch(cv::cuda::GpuMat& labels, cv::cuda::GpuMat& row_vals,
 	int center_cols = row_vals.cols;
 	int num_centers = center_rows * center_cols;
 
-	int num_pixels = labels.rows * labels.cols;
+
+
+	int pixel_rows = labels.rows;
+	int pixel_cols = labels.cols;
+	int num_pixels = pixel_rows * pixel_cols;
 
 	cv::cuda::GpuMat row_sums(cv::Size(num_centers, 1), CV_32SC1);
 	cv::cuda::GpuMat col_sums(cv::Size(num_centers, 1), CV_32SC1);
@@ -99,10 +115,23 @@ void update_centers_launch(cv::cuda::GpuMat& labels, cv::cuda::GpuMat& row_vals,
 	int block_dim_xy = 32;
 	int grid_dim_xy = ((num_pixels - (num_pixels % block_dim_xy)) / block_dim_xy) + 1;
 
-	dim3 cvt_num_blocks(grid_dim_xy, grid_dim_xy, 1);
-	dim3 cvt_threads_per_block(block_dim_xy, block_dim_xy, 1);
+	unsigned int cond_block_dim_x = 32;
+	unsigned int cond_block_dim_y = 32;
 
-	condense_labels_kernel << <cvt_num_blocks, cvt_threads_per_block >> > (labels, row_sums, col_sums, num_sums);
+	unsigned int cond_grid_dim_x = ((pixel_cols - (pixel_cols % cond_block_dim_x)) / cond_block_dim_x) + 1;
+	unsigned int cond_grid_dim_y = ((pixel_rows - (pixel_rows % cond_block_dim_y)) / cond_block_dim_y) + 1;
+
+
+
+
+
+
+
+	dim3 cond_num_blocks(cond_grid_dim_x, cond_grid_dim_y, 1);
+	dim3 cond_threads_per_block(cond_block_dim_x, cond_block_dim_y, 1);
+
+	std::cout << "condensing labels..." << std::endl;
+	condense_labels_kernel << <cond_num_blocks, cond_threads_per_block >> > (labels, row_sums, col_sums, num_sums);
 	cudaDeviceSynchronize();
 
 	// check for error
@@ -110,8 +139,7 @@ void update_centers_launch(cv::cuda::GpuMat& labels, cv::cuda::GpuMat& row_vals,
 	if (error != cudaSuccess)
 	{
 		// print the CUDA error message and exit
-		printf("CUDA error: %s\n", cudaGetErrorString(error));
-		exit(-1);
+		printf("CUDA error: %s: %s \n", cudaGetErrorString(error), "condense labels");
 	}
 
 
@@ -128,6 +156,7 @@ void update_centers_launch(cv::cuda::GpuMat& labels, cv::cuda::GpuMat& row_vals,
 	int sum_row_displacement = 0;
 	int sum_col_displacement = 0;
 
+	std::cout << "updating centers (kernel)..." << std::endl;
 	update_centers_kernel << <num_blocks, threads_per_block >> > (labels, row_vals, col_vals, row_sums, col_sums, num_sums, num_centers, sum_row_displacement, sum_col_displacement);
 	cudaDeviceSynchronize();
 
@@ -136,8 +165,7 @@ void update_centers_launch(cv::cuda::GpuMat& labels, cv::cuda::GpuMat& row_vals,
 	if (error != cudaSuccess)
 	{
 		// print the CUDA error message and exit
-		printf("CUDA error: %s\n", cudaGetErrorString(error));
-		exit(-1);
+		printf("CUDA error: %s: %s \n", cudaGetErrorString(error), "update centers");
 	}
 
 	sum_row_displacement /= center_rows;

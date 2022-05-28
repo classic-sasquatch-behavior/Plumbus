@@ -11,6 +11,7 @@
 
 __global__ void find_labels_kernel(iptr src_L, iptr src_A, iptr src_B, iptr labels, iptr row_vals, iptr col_vals, iptr sector_LUT, int density, int k_step ) {
 
+	//problem is in here: labels are being set too high and too low
 	int row = (blockIdx.y * blockDim.y) + threadIdx.y;
 	int col = (blockIdx.x * blockDim.x) + threadIdx.x;
 
@@ -25,6 +26,13 @@ __global__ void find_labels_kernel(iptr src_L, iptr src_A, iptr src_B, iptr labe
 	int sector_id = (sector_row * sector_cols) + sector_col;
 	int closest_centers[9][2];
 
+
+
+
+
+
+
+	//maybe not right. circle back. go to cudainterface, where we call find_labels_launch and follow the LUT
 	for (int center = 0; center < 9; center++) {
 
 		int center_neighbor_sector_row_id = (sector_id * 9 * 2);
@@ -33,6 +41,15 @@ __global__ void find_labels_kernel(iptr src_L, iptr src_A, iptr src_B, iptr labe
 		closest_centers[center][0] = sector_LUT(0, center_neighbor_sector_row_id);
 		closest_centers[center][1] = sector_LUT(0, center_neighbor_sector_col_id);
 	}
+
+
+
+
+
+
+
+
+
 
 	int closest_centers_actual[9][2];
 	for (int center = 0; center < 9; center++) {
@@ -127,8 +144,7 @@ void find_labels_launch(cv::cuda::GpuMat& src_L, cv::cuda::GpuMat& src_A, cv::cu
 	if (error != cudaSuccess)
 	{
 		// print the CUDA error message and exit
-		printf("CUDA error: %s\n", cudaGetErrorString(error));
-		exit(-1);
+		printf("CUDA error: %s: %s \n", cudaGetErrorString(error), "find labels");
 	}
 
 
