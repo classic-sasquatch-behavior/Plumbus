@@ -277,68 +277,112 @@ void CudaInterface::affinity_propagation_color(cv::Mat& colors, cv::Mat &coordin
 
 cv::Mat CudaInterface::SLIC_superpixels(cv::Mat& input, int density, int* num_superpixels_result) {
 
+	//ok this part should be good
 	const int threshold = 10;
 
 	cv::Mat LAB_src;
 	cv::Mat host_labels(input.size(), CV_32SC1 );
 	cv::cvtColor(input, LAB_src, cv::COLOR_BGR2Lab);
 
-	int width = input.cols;
-	int height = input.rows;
-	int num_pixels = width * height;
-	int num_superpixels = num_pixels/(density*density); int& N = num_superpixels;
-	int superpixel_size = num_pixels / N;
-	int grid_interval = sqrt(superpixel_size);
+	int pixel_rows = input.rows;
+	int pixel_cols = input.cols;
+	int num_pixels = pixel_rows * pixel_cols; int& N = num_pixels;
+	int num_superpixels = N/(density*density); int& K = num_superpixels; //in general, this is a sus way to do this. we'll allow it for now, though
+	int superpixel_size = N/K;
+	int grid_interval = sqrt(superpixel_size); int& S = grid_interval;
 
-	int SP_rows = height / grid_interval;
-	int SP_cols = width / grid_interval;
+	int SP_rows = pixel_rows / S;
+	int SP_cols = pixel_cols / S;
 
-	
+	cv::Mat row_vals( cv::Size(K, 1), CV_32SC1 );
+	cv::Mat col_vals( cv::Size(K, 1), CV_32SC1 );
 
-
-	cv::Mat row_vals( cv::Size(SP_cols, SP_rows), CV_32SC1 );
-	cv::Mat col_vals( cv::Size(SP_cols, SP_rows), CV_32SC1 );
-
-
+	//should be good
 	std::cout << "SLIC initializing centers..." << std::endl;
 	//initialize centers
 	for (int row = 0; row < SP_rows; row++) {
 		for (int col = 0; col < SP_cols; col++) {
-			int center_row = (row * grid_interval) + round(grid_interval/2);
-			int center_col = (col * grid_interval) + round(grid_interval / 2);
-			row_vals.at<int>(row, col) = center_row;
-			col_vals.at<int>(row, col) = center_col;
+			int center_row = (row * grid_interval) + round(grid_interval/2); //if grid interval isn't mathematically perfect (in the sense I'm assuming it is), then it could be leading to oob errors
+			int center_col = (col * grid_interval) + round(grid_interval/2);
+			int center_id = (row * SP_cols ) + col;
+
+			row_vals.at<int>(0, center_id) = center_row;
+			col_vals.at<int>(0, center_id) = center_col;
 		}
 	}
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 	std::cout << "SLIC performing gradient descent..." << std::endl;
 
+
+
+
+
+
+
+
+
+
+
+	//god this whole section is a mess. think I'll have to break out the clipboard
+
 	//gradient descent
-	for (int row = 0; row < SP_rows; row++) {
-		for (int col = 0; col < SP_cols; col++) {
-			int focus_row = row_vals.at<int>(row, col);
-			int focus_col = col_vals.at<int>(row, col);
+	for (int center = 0; center < K; center++) {
+			int focus_row = row_vals.at<int>(0, center);
+			int focus_col = col_vals.at<int>(0, center);
 
 			cv::Vec3b focus_color = LAB_src.at<cv::Vec3b>(focus_row, focus_col);
-			int gradient[3][3];
+			int gradient[3][3]; //why?
+
+
+
 
 
 			for (int irow = -1; irow <= 1; irow++ ) {
 				for (int icol = -1; icol <= 1; icol++) {
 					int target_row = focus_row + irow;
 					int target_col = focus_col + icol;
-					if (target_row < 0 || target_col < 0 || target_row >= height || target_col >= width) { break; }
+					if (target_row < 0 || target_col < 0 || target_row >= pixel_rows|| target_col >= pixel_cols) { break; }
 
+					//why?
+					int search_vals[4][2] = { {target_row, target_col + 1},{target_row, target_col - 1},{target_row + 1, target_col},{target_row - 1, target_col} }; 
 
-					int search_vals[4][2] = { {target_row, target_col + 1},{target_row, target_col - 1},{target_row + 1, target_col},{target_row - 1, target_col} };
-
+					//I'm not seeing where we use this
 					cv::Vec3b target_color = LAB_src.at<cv::Vec3b>(target_row, target_col);
+
+
+
+
+
+
+
 
 
 					int result_sum = 0;
 
-					for (int i = 0; i < 2; i++) {
+					for (int i = 0; i < 2; i++) { //why does this go twice?
 						int search_row_pos = search_vals[i * 2][0];
 						int search_col_pos = search_vals[i * 2][1];
 
@@ -348,10 +392,17 @@ cv::Mat CudaInterface::SLIC_superpixels(cv::Mat& input, int density, int* num_su
 
 						if (search_row_pos < 0 || search_col_pos < 0 || search_row_pos >= height || search_col_pos >= width || 
 							search_row_neg < 0 || search_col_neg < 0 || search_row_neg >= height || search_col_neg >= width) { break; }
+						//actually, this might be too much.
+
+
+
+
 						
 						cv::Vec3b search_color_pos = LAB_src.at<cv::Vec3b>(search_row_pos, search_col_pos);
-
 						cv::Vec3b search_color_neg = LAB_src.at<cv::Vec3b>(search_row_neg, search_col_neg);
+						//what?
+
+
 
 
 						for (int channel = 0; channel < 3; channel++) {
@@ -368,6 +419,17 @@ cv::Mat CudaInterface::SLIC_superpixels(cv::Mat& input, int density, int* num_su
 					gradient[irow + 1][icol + 1] = result_sum;
 				}
 			}
+
+
+
+
+
+
+
+
+
+
+
 
 
 			int lowest_gradient = INF;
@@ -388,105 +450,85 @@ cv::Mat CudaInterface::SLIC_superpixels(cv::Mat& input, int density, int* num_su
 			int past_row = row_vals.at<int>(row, col);
 			int past_col = col_vals.at<int>(row, col);
 
-			int new_row = past_row + lowest_grad_position[0];
+			int new_row = past_row + lowest_grad_position[0]; //this is wrong
 			int new_col = past_col + lowest_grad_position[1];
 
 			row_vals.at<int>(row, col) = new_row;
 			col_vals.at<int>(row, col) = new_col;
-		}
+		
 	}
 
 
 
+	//end hot mess
 
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	//should be good now. doenst store sector coords anymore, just the ids. now, put everything else in terms of ids rather than sector coords.
 	std::cout << "SLIC creating sector LUT..." << std::endl;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 	//create sector LUT
-	cv::Mat sector_LUT(cv::Size(num_superpixels * 9 * 2, 1), CV_32SC1);
-	std::vector<std::vector<std::vector<int>>> process_neighbor_coords;
+	cv::Mat sector_LUT(cv::Size(num_superpixels * 9, 1), CV_32SC1);
+	std::vector<std::vector<int>> process_neighbor_ids;
+
+	//initialize vector sizes
+	for (int focus_center = 0; focus_center < K; focus_center++) {
+		std::vector<int> new_ids;
+		for (int target_center = 0; target_center < 9; target_center++) {
+			new_ids.push_back(-1);
+		}
+		process_neighbor_ids.push_back(new_ids);
+	}
 
 	for (int row = 0; row < SP_rows; row++) {
 		for (int col = 0; col < SP_cols; col++) {
 
+			int focus_sector_id = (row* SP_cols) + col;
 
-
-
-			//double check these
-			int sector_id = (SP_cols * row) + col;
-			//int LUT_index = sector_id * 9 * 2;
-
-
-
-
-
-
-
-			std::vector<std::vector<int>> neighbor_coords;
-
+			int center = 0;
 			for (int irow = -1; irow <= 1; irow++) {
 				for (int icol = -1; icol <= 1; icol++) {
 					int target_row = row + irow;
 					int target_col = col + icol;
-					int neighbor_result[2] = {-1, -1};
+					int target_sector_id = (target_row * SP_cols) + target_col;
 
+					//this is just a stupid way to do it, change it
 					if (target_row < 0 || target_col < 0 || target_row >= SP_rows || target_col >= SP_cols) {
 						continue;
 					}
 					else {
-						neighbor_result[0] = target_row;
-						neighbor_result[1] = target_col;
-
+						process_neighbor_ids[focus_sector_id][center] = target_sector_id;
 					}
-					neighbor_coords.push_back({ neighbor_result[0], neighbor_result[1] });
+					center++;
+
 				}
 			}
-			process_neighbor_coords.push_back(neighbor_coords);
+
 		}
 	}
 
-	//convert vector to mat
+	//convert to mat
+	for (int center = 0; center < K; center++) {
+		for (int neighbor = 0; neighbor < 9; neighbor++) {
 
-
-	for (int center = 0; center < process_neighbor_coords.size(); center++) {
-		std::vector<std::vector<int>> center_neighbors = process_neighbor_coords[center];
-		for (int neighbor = 0; neighbor < center_neighbors.size(); neighbor++) {
-			int neighbor_coords[2] = { center_neighbors[neighbor][0], center_neighbors[neighbor][1] };
-
-			sector_LUT.at<int>(0, (center * 9 * 2) + (neighbor*2)) = neighbor_coords[0];
-			sector_LUT.at<int>(0, (center * 9 * 2) + (neighbor*2) + 1) = neighbor_coords[1];
+			sector_LUT.at<int>(0, (center * 9) + neighbor) = process_neighbor_ids[center][neighbor];
 		}
 	}
-
-
-
-
-
-
-
-
-
-
-
 
 
 

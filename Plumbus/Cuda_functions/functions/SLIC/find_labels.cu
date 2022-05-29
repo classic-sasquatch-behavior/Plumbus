@@ -25,7 +25,7 @@ __global__ void find_labels_kernel(iptr src_L, iptr src_A, iptr src_B, iptr labe
 
 	//this might be wrong, think it through
 	int sector_row = (row - (row % k_step))/k_step;
-	int sector_col = (col - (col % k_step)) / k_step;;
+	int sector_col = (col - (col % k_step)) / k_step;
 	int sector_id = (sector_row * sector_cols) + sector_col;
 	int closest_centers[9][2];
 
@@ -43,7 +43,9 @@ __global__ void find_labels_kernel(iptr src_L, iptr src_A, iptr src_B, iptr labe
 																					//in other words, what could this cause to access out of bounds? the thing it's accessing? or smth later that uses it
 																					//first check the size of the most obvious thing, sector_LUT access below
 																					//I think the problem is that something is out of alignment, either before or after this
-		closest_centers[center][0] = sector_LUT(0, center_neighbor_sector_row_id);
+		
+		
+		closest_centers[center][0] = sector_LUT(0, center_neighbor_sector_row_id); //oob could be here. would mean sector lut is too small
 		closest_centers[center][1] = sector_LUT(0, center_neighbor_sector_col_id);
 	}
 
@@ -65,8 +67,8 @@ __global__ void find_labels_kernel(iptr src_L, iptr src_A, iptr src_B, iptr labe
 		int center_actual_col = -1;
 
 		if (center_sector_row != -1 || center_sector_col != -1) { //AHA! problem is here. look what happens when the if statement is skipped
-			int center_actual_row = row_vals(center_sector_row, center_sector_col);
-			int center_actual_col = col_vals(center_sector_row, center_sector_col);
+			center_actual_row = row_vals(center_sector_row, center_sector_col);
+			center_actual_col = col_vals(center_sector_row, center_sector_col);
 		} // else break; // but what happens if we don't fill it in?
 
 		closest_centers_actual[center][0] = center_actual_row;
@@ -110,23 +112,34 @@ __global__ void find_labels_kernel(iptr src_L, iptr src_A, iptr src_B, iptr labe
 	int closest_center_distance = INF;
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 //check all valid centers, determine which is nearest
 	for (int center = 0; center < 9; center++) { //problem is when a center has no neighbors. this shouldnt happen.
 
+		//this whole section used to be beeg beeg wrong. probably still is.
+		//probably confusing because of the similarity between center_sector and center_actual, so change those up
+		int center_sector_row = closest_centers[center][0];
+		int center_sector_col = closest_centers[center][1];
+		int center_id = (center_sector_row * row_vals.cols) + center_sector_col;
 
+		int center_actual_row = closest_centers_actual[center][0]; //this was looking at the wrong array
+		int center_actual_col = closest_centers_actual[center][1];
 
-
-		int center_sector_row = closest_centers_actual[center][0]; //this was looking at the wrong array
-		int center_sector_col = closest_centers_actual[center][1];
-
-		if (center_sector_row == -1 || center_sector_col == -1) { break; } 
-
-
-
-
-
-		int center_id = (center_sector_row * sector_cols) + center_sector_col; //one of the values here MUST be negative OR
-
+		if (center_actual_row == -1 || center_actual_col == -1) { break; }
 
 
 
@@ -135,13 +148,17 @@ __global__ void find_labels_kernel(iptr src_L, iptr src_A, iptr src_B, iptr labe
 
 
 
-		//if -1s are getting in past the break statement above, they would be visible here.
-		int center_actual_row = row_vals(center_sector_row, center_sector_col);
-		int center_actual_col = col_vals(center_sector_row, center_sector_col);
+
+
+
+
+
+
+
 
 		int center_L = src_L(center_actual_row, center_actual_col);
 		int center_A = src_A(center_actual_row, center_actual_col);
-		int center_B = src_B(center_actual_row, center_actual_col); 
+		int center_B = src_B(center_actual_row, center_actual_col);
 		int center_color[3] = { center_L, center_A, center_B };
 
 		//perform distance check
@@ -162,7 +179,7 @@ __global__ void find_labels_kernel(iptr src_L, iptr src_A, iptr src_B, iptr labe
 		}
 	}
 
-	labels(row, col) = closest_center_id;
+	labels(row, col) = closest_center_id; //would only stay negative one if every neighbor is negative one to begin with
 }
 
 
