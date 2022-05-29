@@ -7,11 +7,18 @@ __global__ void condense_labels_kernel(iptr labels, iptr row_sums, iptr col_sums
 	int row = (blockIdx.y * blockDim.y) + threadIdx.y;
 	int col = (blockIdx.x * blockDim.x) + threadIdx.x;
 
-	if (row >= labels.rows || col >= labels.cols) { return; }
+	int pixel_rows = labels.rows;
+	int pixel_cols = labels.cols;
+	int num_pixels = pixel_rows * pixel_cols;
+
+	int num_centers = num_sums.cols;
+
+
+	if (row >= pixel_rows || col >= pixel_cols) { return; }
 
 	int label = labels(row, col);
 
-	if (label >= labels.cols) {
+	if (label >= num_centers) {
 		printf("label out of bounds: too high \n");
 	}
 

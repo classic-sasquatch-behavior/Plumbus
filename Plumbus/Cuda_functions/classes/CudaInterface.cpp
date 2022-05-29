@@ -428,8 +428,19 @@ cv::Mat CudaInterface::SLIC_superpixels(cv::Mat& input, int density, int* num_su
 	for (int row = 0; row < SP_rows; row++) {
 		for (int col = 0; col < SP_cols; col++) {
 
+
+
+
+			//double check these
 			int sector_id = (SP_cols * row) + col;
-			int LUT_index = sector_id * 9 * 2;
+			//int LUT_index = sector_id * 9 * 2;
+
+
+
+
+
+
+
 			std::vector<std::vector<int>> neighbor_coords;
 
 			for (int irow = -1; irow <= 1; irow++) {
@@ -461,8 +472,8 @@ cv::Mat CudaInterface::SLIC_superpixels(cv::Mat& input, int density, int* num_su
 		for (int neighbor = 0; neighbor < center_neighbors.size(); neighbor++) {
 			int neighbor_coords[2] = { center_neighbors[neighbor][0], center_neighbors[neighbor][1] };
 
-			sector_LUT.at<int>(0, (center * 9 * 2) + neighbor) = neighbor_coords[0];
-			sector_LUT.at<int>(0, (center * 9 * 2) + neighbor + 1) = neighbor_coords[1];
+			sector_LUT.at<int>(0, (center * 9 * 2) + (neighbor*2)) = neighbor_coords[0];
+			sector_LUT.at<int>(0, (center * 9 * 2) + (neighbor*2) + 1) = neighbor_coords[1];
 		}
 	}
 
