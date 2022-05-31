@@ -32,3 +32,7 @@
 
 typedef cv::cuda::PtrStepSzi iptr;
 typedef cv::cuda::PtrStepSzf fptr;
+
+typedef cv::cuda::GpuMat gMat;
+
+

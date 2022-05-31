@@ -6,4 +6,4 @@
 
 
 
-void find_labels_launch(cv::cuda::GpuMat& src_L, cv::cuda::GpuMat& src_A, cv::cuda::GpuMat& src_B, cv::cuda::GpuMat &labels, cv::cuda::GpuMat& row_vals, cv::cuda::GpuMat& col_vals, cv::cuda::GpuMat& sector_LUT, int density, int k_step);
+void find_labels_launch(gMat& src_L, gMat& src_A, gMat& src_B, gMat& labels, gMat& row_vals, gMat& col_vals, gMat& sector_LUT, int density, int S, int K_rows, int K_cols, int K);

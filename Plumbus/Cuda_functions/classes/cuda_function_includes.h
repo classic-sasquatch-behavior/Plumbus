@@ -13,3 +13,4 @@
 #include"../headers/presort_matrix_ap.cuh"
 #include"../headers/find_labels.cuh"
 #include"../headers/update_centers.cuh"
+#include"../headers/enforce_connectivity.cuh"

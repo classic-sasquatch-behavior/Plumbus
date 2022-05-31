@@ -75,50 +75,60 @@ void Frame::generate_superpixels(cv::Mat input) {
 
 	const int density = 5; //[1, 20]
 
+
+
+
 	std::cout << "begin SLIC" << std::endl;
 	int N = 0;
 	cv::Mat labels = GPU->SLIC_superpixels(input, density, &N);
 	Field* new_field = new Field(this, labels);
 	set_field(new_field);
 
-	//FAST
+
+
+
 	for (int superpixel = 0; superpixel < N; superpixel++) {
 		Superpixel* new_superpixel = new Superpixel(new_field);
 		new_field->add_superpixel(new_superpixel);
 	}
-	//FAST
+
+
+
+
+
+
 	cv::Mat input_HSV;
 	cv::cvtColor(input, input_HSV, cv::COLOR_BGR2HSV);
 	std::cout << "assigning points to superpixels..." << std::endl;
-	//timer->begin("assign points to superpixels"); //A LITTLE SLOW BUT FAST ENOUGH //why are you yelling
 	for (int row = 0; row < labels.rows; row++) {
 		for (int col = 0; col < labels.cols; col++) {
-			cv::Point new_point(col, row);
+			cv::Point new_point(col, row); //is this in the wrong order? double check
 			int label = labels.at<int>(new_point);
 
 			cv::Vec3b new_color_BGR = input.at<cv::Vec3b>(new_point);
 			cv::Vec3b new_color_HSV = input_HSV.at<cv::Vec3b>(new_point);
-			field()->superpixel_at(label)->add_point(new_point);
+			field()->superpixel_at(label)->add_point(new_point); //we add the points right here. to have no points, a superpixel would have to not be represented by the labels.
 			field()->superpixel_at(label)->add_color_BGR(new_color_BGR);
 			field()->superpixel_at(label)->add_color_HSV(new_color_HSV);
 		}
 	}
-	//timer->end("assign points to superpixels"); //A LITTLE SLOW BUT FAST ENOUGH
+
+
+
+
+
+
 
 
 	std::cout << "waking up superpixels..." << std::endl;
-	timer->begin("wake up superpixels"); //A LITTLE SLOW BUT FAST ENOUGH
 	for (Superpixel* superpixel : field()->all_superpixels()) {
-		superpixel->compute_average_color();
+		superpixel->compute_average_color(); //this errors out because number of points is 0. so where do we set the number of points?
 		superpixel->compute_mean_of_points();
 		superpixel->compute_histogram();
 	}
-	timer->end("wake up superpixels"); //A LITTLE SLOW BUT FAST ENOUGH
 
 	//reactiviate this if you go back to naive
-	//timer->begin("connect neighbors");
 	//field()->connect_neighbors();
-	//timer->end("connect neighbors");
 }
 
 void Frame::find_regions() {

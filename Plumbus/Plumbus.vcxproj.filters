@@ -75,6 +75,9 @@
     <ClCompile Include="classes\util\Util.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Cuda_functions\classes\CudaUtil.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\000000690.png">
@@ -197,6 +200,7 @@
     <ClInclude Include="Cuda_functions\headers\presort_matrix_ap.cuh" />
     <ClInclude Include="Cuda_functions\headers\find_labels.cuh" />
     <ClInclude Include="Cuda_functions\headers\update_centers.cuh" />
+    <ClInclude Include="Cuda_functions\headers\enforce_connectivity.cuh" />
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="Cuda_functions\functions\misc\selective_blur.cu" />
@@ -213,5 +217,6 @@
     <CudaCompile Include="Cuda_functions\functions\AP\presort_matrix_ap.cu" />
     <CudaCompile Include="Cuda_functions\functions\SLIC\find_labels.cu" />
     <CudaCompile Include="Cuda_functions\functions\SLIC\update_centers.cu" />
+    <CudaCompile Include="Cuda_functions\functions\SLIC\enforce_connectivity.cu" />
   </ItemGroup>
 </Project>
