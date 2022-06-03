@@ -1,19 +1,29 @@
 #pragma once
-#include"../headers/selective_blur.h"
-#include"../headers/fast_selective_blur.cuh"
-#include"../headers/find_borders.cuh"
-#include"../headers/matrix_operations.cuh"
-#include"../headers/form_similarity_matrix.cuh"
-#include"../headers/form_similarity_matrix_color.cuh"
-#include"../headers/update_availibility_matrix.cuh"
-#include"../headers/update_responsibility_matrix.cuh"
-#include"../headers/update_critereon_matrix.cuh"
-#include"../headers/extract_exemplars.cuh"
-#include"../headers/dampen_messages.cuh"
-#include"../headers/presort_matrix_ap.cuh"
-#include"../headers/find_labels.cuh"
-#include"../headers/update_centers.cuh"
 
-#include"../headers/sum_vec.cuh"
-#include"../headers/pop_zero_vec.cuh"
-#include"../headers/exclusive_scan_vec.cuh"
+
+#include"../headers/AP/dampen_messages.cuh"
+#include"../headers/AP/extract_exemplars.cuh"
+#include"../headers/AP/form_similarity_matrix.cuh"
+#include"../headers/AP/form_similarity_matrix_color.cuh"
+#include"../headers/AP/presort_matrix_ap.cuh"
+#include"../headers/AP/update_availibility_matrix.cuh"
+#include"../headers/AP/update_critereon_matrix.cuh"
+#include"../headers/AP/update_responsibility_matrix.cuh"
+
+#include"../headers/generic operations/exclusive_scan_vec.cuh"
+#include"../headers/generic operations/pop_zero_vec.cuh"
+#include"../headers/generic operations/sum_vec.cuh"
+
+#include"../headers/misc/fast_selective_blur.cuh"
+#include"../headers/misc/matrix_operations.cuh"
+#include"../headers/misc/selective_blur.h"
+
+#include"../headers/SLIC/find_labels.cuh"
+#include"../headers/SLIC/update_centers.cuh"
+
+#include"../headers/SP processing/find_borders.cuh"
+
+
+
+
+

@@ -136,10 +136,10 @@
     <ClInclude Include="cuda_includes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Cuda_functions\headers\CudaInterface.h">
+    <ClInclude Include="Cuda_functions\classes\CudaInterface.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Cuda_functions\headers\selective_blur.h">
+    <ClInclude Include="Cuda_functions\headers\misc\selective_blur.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="headers\moments\Moment.h">
@@ -166,7 +166,7 @@
     <ClInclude Include="headers\objects\Object.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Cuda_functions\headers\fast_selective_blur.cuh" />
+    <ClInclude Include="Cuda_functions\headers\misc\fast_selective_blur.cuh" />
     <ClInclude Include="headers\objects\Field.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -179,30 +179,30 @@
     <ClInclude Include="config.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Cuda_functions\headers\find_borders.cuh" />
+    <ClInclude Include="Cuda_functions\headers\SP processing\find_borders.cuh" />
     <ClInclude Include="standard_includes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="headers\util\Util.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Cuda_functions\headers\matrix_operations.cuh" />
-    <ClInclude Include="Cuda_functions\headers\form_similarity_matrix.cuh" />
-    <ClInclude Include="Cuda_functions\headers\update_availibility_matrix.cuh" />
-    <ClInclude Include="Cuda_functions\headers\update_critereon_matrix.cuh" />
-    <ClInclude Include="Cuda_functions\headers\update_responsibility_matrix.cuh" />
+    <ClInclude Include="Cuda_functions\headers\misc\matrix_operations.cuh" />
+    <ClInclude Include="Cuda_functions\headers\AP\form_similarity_matrix.cuh" />
+    <ClInclude Include="Cuda_functions\headers\AP\update_availibility_matrix.cuh" />
+    <ClInclude Include="Cuda_functions\headers\AP\update_critereon_matrix.cuh" />
+    <ClInclude Include="Cuda_functions\headers\AP\update_responsibility_matrix.cuh" />
     <ClInclude Include="Cuda_functions\classes\cuda_function_includes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Cuda_functions\headers\extract_exemplars.cuh" />
-    <ClInclude Include="Cuda_functions\headers\form_similarity_matrix_color.cuh" />
-    <ClInclude Include="Cuda_functions\headers\dampen_messages.cuh" />
-    <ClInclude Include="Cuda_functions\headers\presort_matrix_ap.cuh" />
-    <ClInclude Include="Cuda_functions\headers\find_labels.cuh" />
-    <ClInclude Include="Cuda_functions\headers\update_centers.cuh" />
-    <ClInclude Include="Cuda_functions\headers\pop_zero_vec.cuh" />
-    <ClInclude Include="Cuda_functions\headers\sum_vec.cuh" />
-    <ClInclude Include="Cuda_functions\headers\exclusive_scan_vec.cuh" />
+    <ClInclude Include="Cuda_functions\headers\AP\extract_exemplars.cuh" />
+    <ClInclude Include="Cuda_functions\headers\AP\form_similarity_matrix_color.cuh" />
+    <ClInclude Include="Cuda_functions\headers\AP\dampen_messages.cuh" />
+    <ClInclude Include="Cuda_functions\headers\AP\presort_matrix_ap.cuh" />
+    <ClInclude Include="Cuda_functions\headers\SLIC\find_labels.cuh" />
+    <ClInclude Include="Cuda_functions\headers\SLIC\update_centers.cuh" />
+    <ClInclude Include="Cuda_functions\headers\generic operations\pop_zero_vec.cuh" />
+    <ClInclude Include="Cuda_functions\headers\generic operations\sum_vec.cuh" />
+    <ClInclude Include="Cuda_functions\headers\generic operations\exclusive_scan_vec.cuh" />
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="Cuda_functions\functions\misc\selective_blur.cu" />

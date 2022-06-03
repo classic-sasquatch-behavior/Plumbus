@@ -35,7 +35,7 @@
 #include"headers//util/Window.h"
 #include"headers/util/Util.h"
 
-#include"Cuda_functions/headers/CudaInterface.h"
+#include"Cuda_functions/classes/CudaInterface.h"
 
 extern Timer* timer;
 extern ColorWheel* colorwheel;
