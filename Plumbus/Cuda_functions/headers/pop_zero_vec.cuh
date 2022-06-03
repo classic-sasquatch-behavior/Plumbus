@@ -8,4 +8,8 @@
 
 
 
-void enforce_connectivity_launch(gMat &labels);
+
+
+
+
+void pop_zero_vec_launch(gMat &input);

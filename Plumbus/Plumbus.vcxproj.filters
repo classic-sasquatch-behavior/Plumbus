@@ -200,7 +200,9 @@
     <ClInclude Include="Cuda_functions\headers\presort_matrix_ap.cuh" />
     <ClInclude Include="Cuda_functions\headers\find_labels.cuh" />
     <ClInclude Include="Cuda_functions\headers\update_centers.cuh" />
-    <ClInclude Include="Cuda_functions\headers\enforce_connectivity.cuh" />
+    <ClInclude Include="Cuda_functions\headers\pop_zero_vec.cuh" />
+    <ClInclude Include="Cuda_functions\headers\sum_vec.cuh" />
+    <ClInclude Include="Cuda_functions\headers\exclusive_scan_vec.cuh" />
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="Cuda_functions\functions\misc\selective_blur.cu" />
@@ -217,6 +219,8 @@
     <CudaCompile Include="Cuda_functions\functions\AP\presort_matrix_ap.cu" />
     <CudaCompile Include="Cuda_functions\functions\SLIC\find_labels.cu" />
     <CudaCompile Include="Cuda_functions\functions\SLIC\update_centers.cu" />
-    <CudaCompile Include="Cuda_functions\functions\SLIC\enforce_connectivity.cu" />
+    <CudaCompile Include="Cuda_functions\functions\generic operations\pop_zero_vec.cu" />
+    <CudaCompile Include="Cuda_functions\functions\generic operations\sum_vec.cu" />
+    <CudaCompile Include="Cuda_functions\functions\generic operations\exclusive_scan_vec.cu" />
   </ItemGroup>
 </Project>

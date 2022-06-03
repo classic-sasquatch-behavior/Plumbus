@@ -519,18 +519,15 @@ cv::Mat CudaInterface::SLIC_superpixels(cv::Mat& input, int density, int* num_su
 
 
 
+	int actual_num_superpixels = 0;
 
-
-	enforce_connectivity_launch(d_labels);
-	//enforce connectivity
-
-
+	enforce_connectivity(d_labels, &actual_num_superpixels);
 
 
 
 
-	//change the num superpixels so that it reflects the number of actual superpixels (i.e. distinct label values) in the label mat, and ensures their continguity.
-	int num_actual_superpixels = 0;
+
+
 
 
 
@@ -540,12 +537,28 @@ cv::Mat CudaInterface::SLIC_superpixels(cv::Mat& input, int density, int* num_su
 
 
 	d_labels.download(host_labels);
-	*num_superpixels_result = num_actual_superpixels;
+	*num_superpixels_result = actual_num_superpixels;
 	return host_labels;
 }
 
 
+void enforce_connectivity(gMat& labels, int* num_superpixels) {
 
+
+	//separate blovs
+
+
+	//absrob smaller blobs
+
+
+
+	//produce ordered labels
+
+
+
+
+
+}
 
 
 

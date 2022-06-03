@@ -17,8 +17,16 @@ public:
 
 	std::vector<thrust::pair<int, int>> find_borders(cv::Mat labels);
 
+
+#pragma region SLIC
 	cv::Mat SLIC_superpixels(cv::Mat& input, int density, int* num_superpixels);
 	
+	void enforce_connectivity(gMat &labels, int* num_superpixels );
+
+#pragma endregion
+
+
+
 #pragma region affinity propagation
 
 
@@ -26,6 +34,10 @@ public:
 	void affinity_propagation_color(cv::Mat &colors, cv::Mat &coordinates, cv::Mat &exemplars, int N);
 
 #pragma endregion
+
+
+
+
 
 
 #pragma region matrix operations
