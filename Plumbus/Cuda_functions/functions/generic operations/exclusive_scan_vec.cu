@@ -9,12 +9,7 @@
 
 __global__ void exclusive_scan_vec_kernel(iptr source, iptr result, int N, int* max) {
 
-	int id = (blockIdx.x * blockDim.x) + threadIdx.x;
 
-	if (id >= N) { return; }
-
-
-	//do stuff
 
 
 
