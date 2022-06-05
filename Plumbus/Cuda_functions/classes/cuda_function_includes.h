@@ -20,6 +20,9 @@
 
 #include"../headers/SLIC/find_labels.cuh"
 #include"../headers/SLIC/update_centers.cuh"
+#include"../headers/SLIC/absorb_small_blobs.cuh"
+#include"../headers/SLIC/produce_ordered_labels.cuh"
+#include"../headers/SLIC/separate_blobs.cuh"
 
 #include"../headers/SP processing/find_borders.cuh"
 

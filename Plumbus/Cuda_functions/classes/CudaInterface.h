@@ -21,7 +21,7 @@ public:
 #pragma region SLIC
 	cv::Mat SLIC_superpixels(cv::Mat& input, int density, int* num_superpixels);
 	
-	void enforce_connectivity(gMat &labels, int* num_superpixels );
+	void enforce_connectivity(gMat &labels, int* num_superpixels, int threshold );
 
 #pragma endregion
 

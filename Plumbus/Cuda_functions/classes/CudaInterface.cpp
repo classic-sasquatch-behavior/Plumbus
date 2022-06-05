@@ -4,7 +4,7 @@
 #include"../../config.h"
 
 
-
+CudaUtil* boilerplate;
 
 
 #pragma region structors
@@ -12,6 +12,7 @@
 CudaInterface::CudaInterface() {
 	if (cv::cuda::getCudaEnabledDeviceCount() > 0) {
 		cv::cuda::setDevice(0);
+		boilerplate = new CudaUtil();
 	}
 	else {
 		std::cout << "no cuda enabled device found, or driver not installed or something. [error from: CudaInterface.cpp]";
@@ -277,7 +278,8 @@ void CudaInterface::affinity_propagation_color(cv::Mat& colors, cv::Mat &coordin
 
 cv::Mat CudaInterface::SLIC_superpixels(cv::Mat& input, int density, int* num_superpixels_result) {
 
-	const int threshold = 1;
+	const int min_displacement_for_convergence = 1;
+	const int minimum_SP_size = 50;
 
 	cv::Mat LAB_src;
 	cv::Mat host_labels(input.size(), CV_32SC1 );
@@ -438,13 +440,6 @@ cv::Mat CudaInterface::SLIC_superpixels(cv::Mat& input, int density, int* num_su
 		process_neighbor_ids.push_back(new_ids);
 	}
 
-
-
-
-
-
-
-
 	for (int row = 0; row < K_rows; row++) {
 		for (int col = 0; col < K_cols; col++) {
 
@@ -511,30 +506,15 @@ cv::Mat CudaInterface::SLIC_superpixels(cv::Mat& input, int density, int* num_su
 		update_centers_launch(d_labels, d_row_vals, d_col_vals, &average_displacement, K_rows, K_cols, K);
 
 		std::cout << "SLIC average displacement: " << average_displacement << std::endl;
-		if (average_displacement <= threshold) {
+		if (average_displacement <= min_displacement_for_convergence) {
 			converged = true;
 		}
 	}
 
 
 
-
 	int actual_num_superpixels = 0;
-
-	enforce_connectivity(d_labels, &actual_num_superpixels);
-
-
-
-
-
-
-
-
-
-
-
-
-
+	enforce_connectivity(d_labels, &actual_num_superpixels, minimum_SP_size);
 
 	d_labels.download(host_labels);
 	*num_superpixels_result = actual_num_superpixels;
@@ -542,22 +522,10 @@ cv::Mat CudaInterface::SLIC_superpixels(cv::Mat& input, int density, int* num_su
 }
 
 
-void enforce_connectivity(gMat& labels, int* num_superpixels) {
-
-
-	//separate blovs
-
-
-	//absrob smaller blobs
-
-
-
-	//produce ordered labels
-
-
-
-
-
+void CudaInterface::enforce_connectivity(gMat& labels, int* num_superpixels, int threshold) {
+	separate_blobs_launch(labels);
+	absorb_small_blobs_launch(labels, threshold);
+	produce_ordered_labels_launch(labels, num_superpixels);
 }
 
 

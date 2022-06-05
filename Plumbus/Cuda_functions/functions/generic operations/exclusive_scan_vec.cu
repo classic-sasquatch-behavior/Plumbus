@@ -49,7 +49,7 @@ void exclusive_scan_vec_launch(gMat& input, gMat& output, int* sum) {
 	
 
 
-	unsigned int 
+	unsigned int;
 
 
 
