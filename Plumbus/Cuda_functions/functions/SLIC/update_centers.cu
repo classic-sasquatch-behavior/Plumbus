@@ -85,9 +85,7 @@ void update_centers_launch(gMat& labels, gMat& row_vals, gMat& col_vals, int* av
 
 	std::cout << "condensing labels..." << std::endl;
 	condense_labels_kernel << <ka_num_blocks, ka_threads_per_block >> > (labels, row_sums, col_sums, num_sums);
-	cudaDeviceSynchronize();
-	cudaError_t error = cudaGetLastError(); 
-	if (error != cudaSuccess){printf("CUDA error: %s: %s \n", cudaGetErrorString(error), "condense labels");}
+	cusyncerr(condense_labels_kernel);
 
 
 
@@ -123,9 +121,7 @@ void update_centers_launch(gMat& labels, gMat& row_vals, gMat& col_vals, int* av
 
 	std::cout << "updating centers (kernel)..." << std::endl;
 	update_centers_kernel << <kb_num_blocks, kb_threads_per_block >> > (labels, row_vals, col_vals, row_sums, col_sums, num_sums, K, d_row_displacement_sum, d_col_displacement_sum);
-	cudaDeviceSynchronize();
-	error = cudaGetLastError();
-	if (error != cudaSuccess) { printf("CUDA error: %s: %s \n", cudaGetErrorString(error), "update centers"); }
+	cusyncerr(update_centers);
 
 	cudaMemcpy(h_row_displacement_sum, d_row_displacement_sum, sizeof(int), cudaMemcpyDeviceToHost);
 	cudaMemcpy(h_col_displacement_sum, d_col_displacement_sum, sizeof(int), cudaMemcpyDeviceToHost);

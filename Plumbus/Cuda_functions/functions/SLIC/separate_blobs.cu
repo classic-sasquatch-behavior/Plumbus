@@ -47,7 +47,7 @@ void separate_blobs_launch(gMat& labels) {
 	cv::cuda::GpuMat temp_labels = labels;
 	cv::cuda::GpuMat id_LUT(labels.size(), labels.type());
 	make_coords_to_ids_LUT_kernel << < num_blocks, threads_per_block >> > (id_LUT);
-	cudaDeviceSynchronize();
+	cusyncerr(make_coords_to_ids_LUT_kernel);
 
 	int change = 0;
 	int* h_flag = &change;
@@ -58,7 +58,7 @@ void separate_blobs_launch(gMat& labels) {
 	while (!converged) {
 		cudaMemcpy(d_flag, h_flag, sizeof(int), cudaMemcpyHostToDevice);
 		linear_flow_kernel <<<num_blocks, threads_per_block>>> (labels, temp_labels, id_LUT, N, flag);
-		cudaDeviceSynchronize();
+		cusyncerr(linear_flow_in_separate_blobs);
 		cudaMemcpy(h_flag, d_flag, sizeof(int), cudaMemcpyDeviceToHost);
 
 		if (change == 0) {

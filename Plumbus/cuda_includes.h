@@ -65,10 +65,11 @@ extern CudaUtil* boilerplate;
 	}}
 
 
-//simple as. leave out the semicolon and add it in the code for formatting reasons.
-#define cusync 	cudaDeviceSynchronize()
+//simple as. leave out the semicolon and add it in the code for formatting reasons. consider making this check errors too.
+#define cusync 	cudaDeviceSynchronize() 
 
-
+#define cusyncerr(function_name) cudaDeviceSynchronize();	cudaError_t function_name = cudaGetLastError();												\
+if (function_name != cudaSuccess) { printf("CUDA error: %s: %s \n", cudaGetErrorString(function_name), "function_name"); }
 
 
 

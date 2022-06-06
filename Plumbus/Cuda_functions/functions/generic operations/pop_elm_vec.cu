@@ -45,7 +45,7 @@ void pop_elm_vec_launch(gMat& input, gMat& output, int pop_elm, int* max = 0) {
 
 	cv::cuda::GpuMat flags(input.size(), input.type(), cv::Scalar(0));
 	raise_flags << <num_blocks, threads_per_block >> > (input, flags, pop_elm);
-	cusync;
+	cusyncerr(raise_falgs_in_pop_elm_vec);
 
 	int K = 0;
 	cv::cuda::GpuMat scan_result(input.size(), input.type());
@@ -53,7 +53,7 @@ void pop_elm_vec_launch(gMat& input, gMat& output, int pop_elm, int* max = 0) {
 
 	cv::cuda::GpuMat dest(cv::Size(K, 1), input.type());
 	construct_popped_vector <<<num_blocks, threads_per_block >>> (input, scan_result, dest, pop_elm);
-	cusync;
+	cusyncerr(construct_popped_vector_in_pop_elm_vec);
 
 	output = dest;
 	max = &K;

@@ -53,8 +53,10 @@ void produce_ordered_labels_launch(gMat& labels, int* num_labels) {
 
 	cv::cuda::GpuMat flags(cv::Size(N, 1), labels.type(), cv::Scalar(0));
 	raise_flags_kernel<<<num_blocks_2d, threads_per_block_2d >>>(labels, flags);
+	cusyncerr(raise_falgs_in_produce_ordered_labels);
 
 	init_map_kernel<<<num_blocks_1d, threads_per_block_1d >>>(flags);
+	cusyncerr(init_map_in_produce_ordered_labels);
 
 	int K = 0;
 	cv::cuda::GpuMat temp_map;
@@ -62,8 +64,10 @@ void produce_ordered_labels_launch(gMat& labels, int* num_labels) {
 
 	cv::cuda::GpuMat inverted_map(flags.size(), flags.type(), cv::Scalar(0));
 	invert_map_kernel<<<num_blocks_1d, threads_per_block_1d >>>(temp_map, inverted_map);
+	cusyncerr(invert_map_in_produce_ordered_labels);
 
 	assign_new_labels_kernel<<<num_blocks_2d, threads_per_block_2d >>>(src, inverted_map);
+	cusyncerr(assign_new_labels_in_produce_ordered_labels);
 
 	*num_labels = K;
 }

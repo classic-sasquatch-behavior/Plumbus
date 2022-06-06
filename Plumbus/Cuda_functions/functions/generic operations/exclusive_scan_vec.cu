@@ -37,7 +37,7 @@ __global__ void downsweep(iptr src, iptr buff, int offset, int step) {
 }
 
 
-__global__ void cut_zeros(iptr src, iptr dst, int N) {
+__global__ void truncate_zeros(iptr src, iptr dst, int N) {
 	get_dims_ids_without_bounds
 	if (id >= N) { return; }
 	dst(0, id) = src(0, id); //if youre not careful, this will be keeping the zeros and chooping off the leading numbers
@@ -68,7 +68,7 @@ void exclusive_scan_vec_launch(gMat& input, gMat& output, int* sum) {
 	cv::cuda::GpuMat padded_input(cv::Size(N, 1), input.type(), cv::Scalar(0));
 	boilerplate->get_kernel_structure(input, &num_blocks, &threads_per_block,1, 1);
 	pad_input << <num_blocks, threads_per_block >> > (input, padded_input);
-	cusync;
+	cusyncerr(pad_input_in_exclusive_scan_vec);
 
 	boilerplate->get_kernel_structure(padded_input, &num_blocks, &threads_per_block, 1, 1);
 	cv::cuda::GpuMat padded_output = padded_input;
@@ -84,7 +84,7 @@ void exclusive_scan_vec_launch(gMat& input, gMat& output, int* sum) {
 	for (int step = N >> 1; step > 0; step>>=1) {
 		padded_output = padded_input;
 		upsweep<<<num_blocks, threads_per_block>>>(padded_input, padded_output, offset, step, d_max);
-		cusync;
+		cusyncerr(upsweep_in_exclusive_scan_vec);
 		padded_input = padded_output;
 		offset *= 2;
 	}
@@ -95,20 +95,12 @@ void exclusive_scan_vec_launch(gMat& input, gMat& output, int* sum) {
 		offset >>= 1;
 		padded_output = padded_input;
 		downsweep<<<num_blocks, threads_per_block>>>(padded_input, padded_output, offset, step);
-		cusync;
+		cusyncerr(downsweep_in_exclusive_scan_vec);
 		padded_input = padded_output;
 	}
 
-
-	cut_zeros << <num_blocks, threads_per_block >> > (padded_input, output, true_length);
-	cusync;
-
-
-
-
-
-
-
+	truncate_zeros <<<num_blocks, threads_per_block>>> (padded_input, output, true_length);
+	cusyncerr(truncate_zeros_in_exclusive_scan_vec);
 
 	sum = &max;
 }
