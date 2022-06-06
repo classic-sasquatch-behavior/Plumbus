@@ -14,7 +14,7 @@ __global__ void find_sizes_kernel(iptr src, iptr sizes) {
 	get_dims_ids_and_check_bounds
 
 	int self_label = src(row, col);
-	atomicAdd(sizes(0, self_label), 1);
+	atomicAdd(&sizes(0, self_label), 1);
 }
 
 
@@ -59,19 +59,17 @@ __global__ void linear_flow_kernel(iptr src, iptr temp, iptr sizes_mat, iptr wea
 
 
 
-void absorb_small_blobs_launch(gMat& labels, int threshold) {
-	int N = labels.rows * labels.cols;
-	dim3 num_blocks;
-	dim3 threads_per_block;
-	boilerplate->get_kernel_structure(labels, &num_blocks, &threads_per_block, 2, 2);
+void absorb_small_blobs_launch(gMat& input, int threshold) {
+	get_structure_from_mat;
+	make_2d_kernel_from_structure;
 
-	cv::cuda::GpuMat sizes(cv::Size(N, 1), labels.type());
-	cv::cuda::GpuMat weakness(labels.size(), labels.type(), cv::Scalar{0});
-	cv::cuda::GpuMat sizes_mat(labels.size(), labels.type());
+	cv::cuda::GpuMat sizes(cv::Size(N, 1), input.type());
+	cv::cuda::GpuMat weakness(input.size(), input.type(), cv::Scalar{0});
+	cv::cuda::GpuMat sizes_mat(input.size(), input.type());
 
-	find_sizes_kernel << <num_blocks, threads_per_block >> > (labels, sizes); 
+	find_sizes_kernel << <num_blocks, threads_per_block >> > (input, sizes);
 	cusyncerr(find_sizes_in_absorb_small_blobs);
-	mark_labels_as_weak_kernel << <num_blocks, threads_per_block >> > (labels, sizes, sizes_mat, weakness, threshold); 
+	mark_labels_as_weak_kernel << <num_blocks, threads_per_block >> > (input, sizes, sizes_mat, weakness, threshold);
 	cusyncerr(mark_labels_as_weak);
 
 	cv::cuda::GpuMat temp = sizes_mat;
@@ -84,7 +82,7 @@ void absorb_small_blobs_launch(gMat& labels, int threshold) {
 	bool converged = false;
 	while (!converged) {
 		cudaMemcpy(d_flag, h_flag, sizeof(int), cudaMemcpyHostToDevice);
-		linear_flow_kernel <<<num_blocks, threads_per_block>>> (labels, temp, sizes_mat, weakness, d_flag); 
+		linear_flow_kernel <<<num_blocks, threads_per_block>>> (input, temp, sizes_mat, weakness, d_flag);
 		cusyncerr(linear_flow_in_absorb_small_blobs);
 		cudaMemcpy(h_flag, d_flag, sizeof(int), cudaMemcpyDeviceToHost);
 

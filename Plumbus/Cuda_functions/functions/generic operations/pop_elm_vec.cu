@@ -39,9 +39,8 @@ void pop_elm_vec_launch(gMat& input, gMat& output, int pop_elm, int* max = 0) {
 
 	//vector is assumed to be 1d and horizontal
 
-	dim3 num_blocks;
-	dim3 threads_per_block;
-	boilerplate->get_kernel_structure(input, &num_blocks, &threads_per_block, 1, 1);
+	get_structure_from_mat;
+	make_1d_kernel_from_structure;
 
 	cv::cuda::GpuMat flags(input.size(), input.type(), cv::Scalar(0));
 	raise_flags << <num_blocks, threads_per_block >> > (input, flags, pop_elm);

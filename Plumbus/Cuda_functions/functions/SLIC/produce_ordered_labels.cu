@@ -41,21 +41,16 @@ __global__ void assign_new_labels_kernel(iptr src, iptr map) {
 
 
 void produce_ordered_labels_launch(gMat& labels, int* num_labels) {
-	int N = labels.rows * labels.cols;
-	dim3 num_blocks_2d;
-	dim3 threads_per_block_2d;
-	boilerplate->get_kernel_structure(labels, &num_blocks_2d, &threads_per_block_2d, 2, 2);
+	alias_input(labels);
+	get_structure_from_mat;
 
-	dim3 num_blocks_1d;
-	dim3 threads_per_block_1d;
-	boilerplate->get_kernel_structure(labels, &num_blocks_1d, &threads_per_block_1d, 2, 1);
-
-
+	make_2d_kernel_from_structure;
 	cv::cuda::GpuMat flags(cv::Size(N, 1), labels.type(), cv::Scalar(0));
-	raise_flags_kernel<<<num_blocks_2d, threads_per_block_2d >>>(labels, flags);
+	raise_flags_kernel<<<num_blocks, threads_per_block>>>(labels, flags);
 	cusyncerr(raise_falgs_in_produce_ordered_labels);
 
-	init_map_kernel<<<num_blocks_1d, threads_per_block_1d >>>(flags);
+	make_1d_kernel_from_structure;
+	init_map_kernel<<<num_blocks, threads_per_block>>>(flags);
 	cusyncerr(init_map_in_produce_ordered_labels);
 
 	int K = 0;
@@ -63,10 +58,11 @@ void produce_ordered_labels_launch(gMat& labels, int* num_labels) {
 	pop_elm_vec_launch(flags, temp_map, 0, &K);
 
 	cv::cuda::GpuMat inverted_map(flags.size(), flags.type(), cv::Scalar(0));
-	invert_map_kernel<<<num_blocks_1d, threads_per_block_1d >>>(temp_map, inverted_map);
+	invert_map_kernel<<<num_blocks, threads_per_block >>>(temp_map, inverted_map);
 	cusyncerr(invert_map_in_produce_ordered_labels);
 
-	assign_new_labels_kernel<<<num_blocks_2d, threads_per_block_2d >>>(src, inverted_map);
+	make_2d_kernel_from_structure;
+	assign_new_labels_kernel<<<num_blocks, threads_per_block >>>(labels, inverted_map);
 	cusyncerr(assign_new_labels_in_produce_ordered_labels);
 
 	*num_labels = K;

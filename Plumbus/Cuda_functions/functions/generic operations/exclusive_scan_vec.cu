@@ -62,23 +62,21 @@ void exclusive_scan_vec_launch(gMat& input, gMat& output, int* sum) {
 	int closest_greater_power_of_2 = pow(2, ceil(log(true_length) / log(2)));
 	int padding = closest_greater_power_of_2 - true_length;
 	int N = true_length + padding;	//actual length that we're gonna pass into the kernel
+	
+	unsigned int block_dim_x = 1024;
+	unsigned int grid_dim_x = ((N - (N % block_dim_x)) / block_dim_x) + 1;
+	dim3 num_blocks = {grid_dim_x, 1, 1};
+	dim3 threads_per_block = {block_dim_x, 1, 1};
 
-	dim3 num_blocks;
-	dim3 threads_per_block;
 	cv::cuda::GpuMat padded_input(cv::Size(N, 1), input.type(), cv::Scalar(0));
-	boilerplate->get_kernel_structure(input, &num_blocks, &threads_per_block,1, 1);
 	pad_input << <num_blocks, threads_per_block >> > (input, padded_input);
 	cusyncerr(pad_input_in_exclusive_scan_vec);
-
-	boilerplate->get_kernel_structure(padded_input, &num_blocks, &threads_per_block, 1, 1);
 	cv::cuda::GpuMat padded_output = padded_input;
+
 	int max = 0;
 	int* h_max = &max;
 	int* d_max;
 	cudaMalloc(&d_max, sizeof(int));
-	
-
-
 	int offset = 1;
 
 	for (int step = N >> 1; step > 0; step>>=1) {

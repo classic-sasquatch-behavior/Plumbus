@@ -238,6 +238,7 @@
     <ClInclude Include="config.h" />
     <ClInclude Include="Cuda_functions\classes\CudaUtil.h" />
     <ClInclude Include="Cuda_functions\classes\cuda_function_includes.h" />
+    <ClInclude Include="Cuda_functions\classes\cuda_macros.h" />
     <ClInclude Include="Cuda_functions\headers\AP\dampen_messages.cuh" />
     <ClInclude Include="Cuda_functions\headers\generic operations\exclusive_scan_vec.cuh" />
     <ClInclude Include="Cuda_functions\headers\AP\extract_exemplars.cuh" />

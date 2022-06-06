@@ -12,9 +12,6 @@ public:
 	~CudaUtil();
 
 
-	void get_kernel_structure(gMat& input, dim3* num_blocks, dim3* threads_per_block, int mat_dimensionality, int kernel_dimensionality);
-
-
 
 
 

@@ -209,6 +209,9 @@
     <ClInclude Include="Cuda_functions\classes\CudaUtil.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Cuda_functions\classes\cuda_macros.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="Cuda_functions\functions\misc\selective_blur.cu" />
