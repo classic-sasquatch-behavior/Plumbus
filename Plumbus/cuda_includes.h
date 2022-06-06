@@ -41,18 +41,27 @@ extern CudaUtil* boilerplate;
 
 
 //assumes that the exemplar mat is named src, returns row and col id. incidentally defines src_rows and src_cols
-#define get_dims_ids_and_check_bounds																						\
-	int src_rows = src.rows; int src_cols = src.cols;																		\
-	int row = (blockIdx.y * blockDim.y) + threadIdx.y; int col = (blockIdx.x * blockDim.x) + threadIdx.x;					\
+#define get_dims_ids_and_check_bounds																													\
+	int src_rows = src.rows; int src_cols = src.cols;																									\
+	int row = (blockIdx.y * blockDim.y) + threadIdx.y; int col = (blockIdx.x * blockDim.x) + threadIdx.x;  int x = col; int y = row;					\
+	int id = (row * src_cols) + col;																													\
 	if (row >= src_rows || col >= src_cols) { return; }
 
 
+
+//gets dims and ids without checking the bounds
+#define get_dims_ids_without_bounds																														\
+	int src_rows = src.rows; int src_cols = src.cols;																									\
+	int row = (blockIdx.y * blockDim.y) + threadIdx.y; int col = (blockIdx.x * blockDim.x) + threadIdx.x; int id = col; int x = col; int y = row; int id = (row * src_cols) + col;								
+																												
+
+
 //returns neighbor_row and neighbor_col as indices relative to row and col of thread
-#define for_each_immediate_neighbor(content_of_expression)																	\
-	for (int irow = -1; irow <= 1; irow++) { for (int icol = -1; icol <= 1; icol++)											\
-	{ int neighbor_row = row + irow; int neighbor_col = col + icol;															\
-	if (neighbor_row >= src_rows || neighbor_col >= src_cols || neighbor_row < 0 || neighbor_col < 0) { break; }			\
-	content_of_expression																									\
+#define for_each_immediate_neighbor(content_of_expression)																								\
+	for (int irow = -1; irow <= 1; irow++) { for (int icol = -1; icol <= 1; icol++)																		\
+	{ int neighbor_row = row + irow; int neighbor_col = col + icol;																						\
+	if (neighbor_row >= src_rows || neighbor_col >= src_cols || neighbor_row < 0 || neighbor_col < 0) { break; }										\
+	content_of_expression																																\
 	}}
 
 

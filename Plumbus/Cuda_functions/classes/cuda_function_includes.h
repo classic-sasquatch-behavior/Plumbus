@@ -11,7 +11,7 @@
 #include"../headers/AP/update_responsibility_matrix.cuh"
 
 #include"../headers/generic operations/exclusive_scan_vec.cuh"
-#include"../headers/generic operations/pop_zero_vec.cuh"
+#include"../headers/generic operations/pop_elm_vec.cuh"
 #include"../headers/generic operations/sum_vec.cuh"
 
 #include"../headers/misc/fast_selective_blur.cuh"

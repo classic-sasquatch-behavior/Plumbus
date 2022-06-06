@@ -67,7 +67,20 @@ void CudaUtil::get_kernel_structure(gMat& input, dim3* num_blocks_out, dim3* thr
 
 
 	}
+	if (mat_dimensionality == 1 && kernel_dimensionality == 1) {
 
+
+
+		unsigned int block_dim_x = 1024;
+		unsigned int grid_dim_x = ((N - (N % block_dim_x)) / block_dim_x) + 1;
+
+		dim3 num_blocks(grid_dim_x, 1, 1);
+		dim3 threads_per_block(block_dim_x, 1, 1);
+
+
+
+
+	}
 
 
 
