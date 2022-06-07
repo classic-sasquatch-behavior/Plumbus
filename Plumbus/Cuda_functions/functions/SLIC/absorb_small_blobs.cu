@@ -78,9 +78,12 @@ void absorb_small_blobs_launch(gMat& input, int threshold) {
 	int* d_flag;
 	int* h_flag = &change;
 	cudaMalloc(&d_flag, sizeof(int));
+
+
 	
 	bool converged = false;
 	while (!converged) {
+
 		cudaMemcpy(d_flag, h_flag, sizeof(int), cudaMemcpyHostToDevice);
 		linear_flow_kernel <<<num_blocks, threads_per_block>>> (input, temp, sizes_mat, weakness, d_flag);
 		cusyncerr(linear_flow_in_absorb_small_blobs);
@@ -90,6 +93,7 @@ void absorb_small_blobs_launch(gMat& input, int threshold) {
 			converged = true;
 		}
 		change = 0;
+
 	}
 
 	cudaFree(d_flag);

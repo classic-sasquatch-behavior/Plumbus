@@ -9,7 +9,6 @@ __global__ void linear_flow_kernel(iptr src, iptr temp, iptr id_LUT, int N, int*
 	int self_temp_val = temp(row, col);
 	int greatest_temp_val = self_temp_val;
 
-	#pragma unroll
 	for_each_immediate_neighbor (
 		int neighbor_label = src(neighbor_row, neighbor_col);
 		if (self_label == neighbor_label) {
@@ -49,8 +48,10 @@ void separate_blobs_launch(gMat& labels) {
 	int* d_flag;
 	cudaMalloc(&d_flag, sizeof(int));
 	bool converged = false;
+	int DEBUG_times_run = 0;
 
 	while (!converged) {
+		std::cout << "separate_blobs times run: " << DEBUG_times_run << std::endl;
 		cudaMemcpy(d_flag, h_flag, sizeof(int), cudaMemcpyHostToDevice);
 		linear_flow_kernel <<<num_blocks, threads_per_block>>> (labels, temp_labels, id_LUT, N, d_flag);
 		cusyncerr(linear_flow_in_separate_blobs);
@@ -60,6 +61,7 @@ void separate_blobs_launch(gMat& labels) {
 			converged = true;
 		}
 		change = 0;
+		DEBUG_times_run++;
 	}
 	cudaFree(d_flag);
 

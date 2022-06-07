@@ -279,7 +279,7 @@ void CudaInterface::affinity_propagation_color(cv::Mat& colors, cv::Mat &coordin
 cv::Mat CudaInterface::SLIC_superpixels(cv::Mat& input, int density, int* num_superpixels_result) {
 
 	const int min_displacement_for_convergence = 1;
-	const int minimum_SP_size = 50;
+	const int minimum_SP_size = 100;
 
 	cv::Mat LAB_src;
 	cv::Mat host_labels(input.size(), CV_32SC1 );

@@ -100,5 +100,5 @@ void exclusive_scan_vec_launch(gMat& input, gMat& output, int* sum) {
 	truncate_zeros <<<num_blocks, threads_per_block>>> (padded_input, output, true_length);
 	cusyncerr(truncate_zeros_in_exclusive_scan_vec);
 
-	sum = &max;
+	*sum = max;
 }

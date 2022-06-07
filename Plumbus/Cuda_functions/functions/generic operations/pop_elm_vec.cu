@@ -40,7 +40,7 @@ void pop_elm_vec_launch(gMat& input, gMat& output, int pop_elm, int* max = 0) {
 	//vector is assumed to be 1d and horizontal
 
 	get_structure_from_mat;
-	make_1d_kernel_from_structure;
+	make_1d_kernel_from_structure; //is this the first time we're calling this?
 
 	cv::cuda::GpuMat flags(input.size(), input.type(), cv::Scalar(0));
 	raise_flags << <num_blocks, threads_per_block >> > (input, flags, pop_elm);
@@ -48,7 +48,7 @@ void pop_elm_vec_launch(gMat& input, gMat& output, int pop_elm, int* max = 0) {
 
 	int K = 0;
 	cv::cuda::GpuMat scan_result(input.size(), input.type());
-	exclusive_scan_vec_launch(flags, scan_result, &K);
+	exclusive_scan_vec_launch(flags, scan_result, &K); //could be that this is returning wrong k
 
 	cv::cuda::GpuMat dest(cv::Size(K, 1), input.type());
 	construct_popped_vector <<<num_blocks, threads_per_block >>> (input, scan_result, dest, pop_elm); //error is in here
@@ -56,5 +56,5 @@ void pop_elm_vec_launch(gMat& input, gMat& output, int pop_elm, int* max = 0) {
 
 
 	output = dest;
-	max = &K;
+	*max = K;
 }

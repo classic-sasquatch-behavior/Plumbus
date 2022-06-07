@@ -73,7 +73,7 @@ void Frame::identify_local_objects() {
 
 void Frame::generate_superpixels(cv::Mat input) {
 
-	const int density = 5; //[1, 20]
+	const int density = 20; //[1, 20]
 
 
 
@@ -184,13 +184,23 @@ cv::Mat Frame::draw_superpixels(Field* input) {
 
 	for (int superpixel = 0; superpixel < num_superpixels; superpixel++) {
 		Superpixel* this_pixel = input->superpixel_at(superpixel);
-		cv::Vec3b color_to_set = this_pixel->average_color_BGR();
+		cv::Vec3b color_to_set = colorwheel->get_color(16);
+		//cv::Vec3b color_to_set = this_pixel->average_color_BGR();
 		for (int pixel = 0; pixel < this_pixel->num_points(); pixel++ ) {
 			output.at<cv::Vec3b>(this_pixel->point_at(pixel)) = color_to_set;
 		}
 	}
 	return output;
 }
+
+
+
+
+
+
+
+
+
 
 cv::Mat Frame::binary_overlay(cv::Mat base_in, cv::Mat mask_in) {
 	cv::Mat base, mask;
