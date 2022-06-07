@@ -234,6 +234,5 @@
     <CudaCompile Include="Cuda_functions\functions\SLIC\separate_blobs.cu" />
     <CudaCompile Include="Cuda_functions\functions\SLIC\absorb_small_blobs.cu" />
     <CudaCompile Include="Cuda_functions\functions\SLIC\produce_ordered_labels.cu" />
-    <CudaCompile Include="Cuda_functions\functions\SLIC\DEBUG_SCRATCH.cu" />
   </ItemGroup>
 </Project>

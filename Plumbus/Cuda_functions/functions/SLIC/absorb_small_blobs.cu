@@ -78,12 +78,12 @@ void absorb_small_blobs_launch(gMat& input, int threshold) {
 	int* d_flag;
 	int* h_flag = &change;
 	cudaMalloc(&d_flag, sizeof(int));
-
+	int DEBUG_times_run = 0;
 
 	
 	bool converged = false;
 	while (!converged) {
-
+		std::cout << "absorb_small_blobs times run: " << DEBUG_times_run << std::endl;
 		cudaMemcpy(d_flag, h_flag, sizeof(int), cudaMemcpyHostToDevice);
 		linear_flow_kernel <<<num_blocks, threads_per_block>>> (input, temp, sizes_mat, weakness, d_flag);
 		cusyncerr(linear_flow_in_absorb_small_blobs);
@@ -93,7 +93,7 @@ void absorb_small_blobs_launch(gMat& input, int threshold) {
 			converged = true;
 		}
 		change = 0;
-
+		DEBUG_times_run++;
 	}
 
 	cudaFree(d_flag);

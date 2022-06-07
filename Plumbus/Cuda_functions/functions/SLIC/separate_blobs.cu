@@ -18,10 +18,12 @@ __global__ void linear_flow_kernel(iptr src, iptr temp, iptr id_LUT, int N, int*
 			}
 		}
 	) //end for_each_immediate_neighbor
+	temp(row, col) = greatest_temp_val; //added this so it actually writes
 
 	if (greatest_temp_val != self_temp_val) {
 		change[0] = 1;
 	}
+
 }
 
 
@@ -38,10 +40,11 @@ void separate_blobs_launch(gMat& labels) {
 	get_structure_from_mat;
 	make_2d_kernel_from_structure;
 
-	cv::cuda::GpuMat temp_labels = labels;
+
 	cv::cuda::GpuMat id_LUT(labels.size(), labels.type());
 	make_coords_to_ids_LUT_kernel << < num_blocks, threads_per_block >> > (id_LUT);
 	cusyncerr(make_coords_to_ids_LUT_kernel);
+	cv::cuda::GpuMat temp_labels = id_LUT; //changed this to initialize as the ids
 
 	int change = 0;
 	int* h_flag = &change;
