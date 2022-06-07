@@ -28,7 +28,7 @@
 #define cusync 	cudaDeviceSynchronize() 
 
 #define cusyncerr(function_name) cudaDeviceSynchronize();	cudaError_t function_name = cudaGetLastError();												\
-if (function_name != cudaSuccess) { printf("CUDA error: %s: %s \n", cudaGetErrorString(function_name), "function_name"); }
+if (function_name != cudaSuccess) { printf("CUDA error: %s: %s \n", cudaGetErrorString(function_name), #function_name ); }
 
 
 

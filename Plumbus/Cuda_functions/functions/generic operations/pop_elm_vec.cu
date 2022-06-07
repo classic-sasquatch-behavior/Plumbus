@@ -51,8 +51,9 @@ void pop_elm_vec_launch(gMat& input, gMat& output, int pop_elm, int* max = 0) {
 	exclusive_scan_vec_launch(flags, scan_result, &K);
 
 	cv::cuda::GpuMat dest(cv::Size(K, 1), input.type());
-	construct_popped_vector <<<num_blocks, threads_per_block >>> (input, scan_result, dest, pop_elm);
+	construct_popped_vector <<<num_blocks, threads_per_block >>> (input, scan_result, dest, pop_elm); //error is in here
 	cusyncerr(construct_popped_vector_in_pop_elm_vec);
+
 
 	output = dest;
 	max = &K;
