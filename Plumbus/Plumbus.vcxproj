@@ -196,6 +196,7 @@
     <CudaCompile Include="Cuda_functions\functions\AP\dampen_messages.cu" />
     <CudaCompile Include="Cuda_functions\functions\AP\extract_exemplars.cu" />
     <CudaCompile Include="Cuda_functions\functions\generic operations\exclusive_scan_vec.cu" />
+    <CudaCompile Include="Cuda_functions\functions\generic operations\gradient_descent.cu" />
     <CudaCompile Include="Cuda_functions\functions\generic operations\pop_elm_vec.cu" />
     <CudaCompile Include="Cuda_functions\functions\generic operations\sum_vec.cu" />
     <CudaCompile Include="Cuda_functions\functions\misc\fast_selective_blur.cu">
@@ -242,6 +243,7 @@
     <ClInclude Include="Cuda_functions\headers\AP\dampen_messages.cuh" />
     <ClInclude Include="Cuda_functions\headers\generic operations\exclusive_scan_vec.cuh" />
     <ClInclude Include="Cuda_functions\headers\AP\extract_exemplars.cuh" />
+    <ClInclude Include="Cuda_functions\headers\generic operations\gradient_descent.cuh" />
     <ClInclude Include="Cuda_functions\headers\misc\fast_selective_blur.cuh" />
     <ClInclude Include="Cuda_functions\headers\SLIC\absorb_small_blobs.cuh" />
     <ClInclude Include="Cuda_functions\headers\SLIC\produce_ordered_labels.cuh" />

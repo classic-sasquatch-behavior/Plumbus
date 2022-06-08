@@ -521,7 +521,7 @@ cv::Mat CudaInterface::SLIC_superpixels(cv::Mat& input, int density, int* num_su
 	return host_labels;
 }
 
-
+//working as intended :)
 void CudaInterface::enforce_connectivity(gMat& labels, int* num_superpixels, int threshold) {
 	separate_blobs_launch(labels);
 	absorb_small_blobs_launch(labels, threshold);

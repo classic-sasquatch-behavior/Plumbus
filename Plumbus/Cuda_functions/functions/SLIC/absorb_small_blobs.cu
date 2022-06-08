@@ -97,4 +97,5 @@ void absorb_small_blobs_launch(gMat& input, int threshold) {
 	}
 
 	cudaFree(d_flag);
+	input = temp;
 }
