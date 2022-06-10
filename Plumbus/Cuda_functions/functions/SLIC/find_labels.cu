@@ -53,7 +53,7 @@ __global__ void find_labels_kernel(iptr src_L, iptr src_A, iptr src_B, iptr labe
 	int thread_color[3] = { thread_L, thread_A, thread_B };
 
 	int closest_center_id = -1;
-	int closest_center_distance = INF;
+	float closest_center_distance = INF;
 
 //check all valid centers, determine which is nearest
 	for (int center = 0; center < 9; center++) { 
@@ -77,11 +77,11 @@ __global__ void find_labels_kernel(iptr src_L, iptr src_A, iptr src_B, iptr labe
 			channel_diff_sum += channel_diff * channel_diff;
 		}
 
-		int dlab = sqrtf(channel_diff_sum); 
-		int dxy = sqrtf(((thread_row - center_pixel_row)*(thread_row - center_pixel_row)) + ((thread_col - center_pixel_col)*(thread_col - center_pixel_col)));
+		float dlab = sqrtf(channel_diff_sum); 
+		float dxy = sqrtf(((thread_row - center_pixel_row)*(thread_row - center_pixel_row)) + ((thread_col - center_pixel_col)*(thread_col - center_pixel_col)));
 		float xy_mod = density/S;
 
-		int distance_to_center = dlab + (xy_mod * dxy); //float gets forcibly converted to int here, probably not great
+		float distance_to_center = dlab + (xy_mod * dxy); //float gets forcibly converted to int here, probably not great
 
 		if (distance_to_center < closest_center_distance) {
 			closest_center_distance = distance_to_center;

@@ -47,3 +47,24 @@ num_blocks = {grid_dim_x, 1, 1}; threads_per_block = {block_dim_x, 1, 1};
 #define make_2d_kernel_from_structure																																								\
 block_dim_xy = 32; grid_dim_x = ((cols - (cols%block_dim_xy))/block_dim_xy) + 1; grid_dim_y = ((rows - (rows%block_dim_xy))/block_dim_xy) + 1;				\
 num_blocks = {grid_dim_x, grid_dim_y, 1}; threads_per_block = {block_dim_xy, block_dim_xy, 1};										
+
+
+
+#define inititalize_global_flag(host_variable_name) \
+int host_variable_name = 0;							 \
+int* h_flag = &host_variable_name;					 \
+int* d_flag;										 \
+cudaMalloc(&d_flag, sizeof(int));
+
+
+#define upload_global_flag cudaMemcpy(d_flag, h_flag, sizeof(int), cudaMemcpyHostToDevice);
+
+#define download_global_flag cudaMemcpy(h_flag, d_flag, sizeof(int), cudaMemcpyDeviceToHost);
+
+#define destroy_global_flag cudaFree(d_flag);
+
+
+
+
+
+

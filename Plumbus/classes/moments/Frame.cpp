@@ -73,14 +73,14 @@ void Frame::identify_local_objects() {
 
 void Frame::generate_superpixels(cv::Mat input) {
 
-	const int density = 20; //[1, 20]
+	const int num_centers = 3000; //[1, 20]
 
 
 
 
 	std::cout << "begin SLIC" << std::endl;
 	int N = 0;
-	cv::Mat labels = GPU->SLIC_superpixels(input, density, &N);
+	cv::Mat labels = GPU->SLIC_superpixels(input, num_centers, &N);
 	Field* new_field = new Field(this, labels);
 	set_field(new_field);
 

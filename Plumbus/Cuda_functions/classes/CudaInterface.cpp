@@ -273,38 +273,78 @@ void CudaInterface::affinity_propagation_color(cv::Mat& colors, cv::Mat &coordin
 
 #pragma endregion
 
-#pragma region superpixels
+#pragma region SLIC
 
+cv::Mat CudaInterface::SLIC_improved(cv::Mat& BGR_input, int* num_superpixels_result) {
+	const int min_displacement_for_convergence = 1; //the average movement of new centers before SLIC algorithm is declared as converged
+	const int SP_size_factor = 10; //this number squared = area of superpixels
+	const int density = 10;  //[1-20]
+	const int search_depth = 9; //number of closest centers for pixels to consider
 
-cv::Mat CudaInterface::SLIC_superpixels(cv::Mat& input, int density, int* num_superpixels_result) {
+	cv::Mat LAB_src;
+	cv::Mat host_labels(BGR_input.size(), CV_32SC1);
+	cv::cvtColor(BGR_input, LAB_src, cv::COLOR_BGR2Lab);
+	cv::Mat& input = LAB_src;
+
+	int N_rows = input.rows;
+	int N_cols = input.cols;
+	int N = N_rows * N_cols;
+	int K_rows = floor(N_rows/SP_size_factor);
+	int K_cols = floor(N_cols / SP_size_factor);
+	int K = K_rows * K_cols;
+	int SP_size = SP_size_factor * SP_size_factor;
+
+	//initialize centers
+	//upload necessary mats
+	//maybe gradient descent (implement at end)
+	
+	//begin loop
+	//recognize closest centers (linear flow)
+	//assign pixels to centers
+	//recalculate center positions
+	//check for convergence
+
+	//enforce connectivity
+
+}
+
+void CudaInterface::enforce_connectivity(gMat& labels, int* num_superpixels, int threshold) {
+	separate_blobs_launch(labels);
+	absorb_small_blobs_launch(labels, threshold);
+	produce_ordered_labels_launch(labels, num_superpixels);
+}
+
+cv::Mat CudaInterface::SLIC_superpixels(cv::Mat& input, int num_centers, int* num_superpixels_result) {
 
 	const int min_displacement_for_convergence = 1;
 	const int minimum_SP_size = 100;
+	const int density = 10;
 
 	cv::Mat LAB_src;
-	cv::Mat host_labels(input.size(), CV_32SC1 );
+	cv::Mat host_labels(input.size(), CV_32SC1);
 	cv::cvtColor(input, LAB_src, cv::COLOR_BGR2Lab);
 
 	int pixel_rows = input.rows;
 	int pixel_cols = input.cols;
 	int num_pixels = pixel_rows * pixel_cols; int& N = num_pixels;
-	int num_superpixels = N/(density*density); int& K = num_superpixels; //in general, this is a sus way to do this. we'll allow it for now, though
-	int superpixel_size = N/K;
+
+	int superpixel_size = N / num_centers;
 	int grid_interval = sqrt(superpixel_size); int& S = grid_interval;
 
-	int K_rows = pixel_rows / S;
-	int K_cols = pixel_cols / S;
+	int K_rows = floor(pixel_rows / S);
+	int K_cols = floor(pixel_cols / S);
+	int K = K_rows * K_cols;
 
-	cv::Mat row_vals( cv::Size(K, 1), CV_32SC1 );
-	cv::Mat col_vals( cv::Size(K, 1), CV_32SC1 );
+	cv::Mat row_vals(cv::Size(K, 1), CV_32SC1);
+	cv::Mat col_vals(cv::Size(K, 1), CV_32SC1);
 
 	std::cout << "SLIC initializing centers..." << std::endl;
 	//initialize centers
 	for (int row = 0; row < K_rows; row++) {
 		for (int col = 0; col < K_cols; col++) {
-			int center_row = (row * grid_interval) + round(grid_interval/2); //if grid interval isn't mathematically perfect (in the sense I'm assuming it is), then it could be leading to oob errors
-			int center_col = (col * grid_interval) + round(grid_interval/2);
-			int center_id = (row * K_cols ) + col;
+			int center_row = (row * grid_interval) + round(grid_interval / 2); //if grid interval isn't mathematically perfect (in the sense I'm assuming it is), then it could be leading to oob errors
+			int center_col = (col * grid_interval) + round(grid_interval / 2);
+			int center_id = (row * K_cols) + col;
 
 			row_vals.at<int>(0, center_id) = center_row;
 			col_vals.at<int>(0, center_id) = center_col;
@@ -313,7 +353,7 @@ cv::Mat CudaInterface::SLIC_superpixels(cv::Mat& input, int density, int* num_su
 
 	//std::cout << "SLIC performing gradient descent..." << std::endl;
 	//gradient descent - ignoring for now, as it is a total mess and not completely necessary for the function to run
-	
+
 	//god this whole section is a mess. think I'll have to break out the clipboard
 	//gradient descent
 	//for (int center = 0; center < K; center++) {
@@ -428,7 +468,7 @@ cv::Mat CudaInterface::SLIC_superpixels(cv::Mat& input, int density, int* num_su
 
 	std::cout << "SLIC creating sector LUT..." << std::endl;
 	//create sector LUT
-	cv::Mat sector_LUT(cv::Size(num_superpixels * 9, 1), CV_32SC1);
+	cv::Mat sector_LUT(cv::Size(K * 9, 1), CV_32SC1);
 	std::vector<std::vector<int>> process_neighbor_ids;
 
 	//initialize vector sizes
@@ -443,7 +483,7 @@ cv::Mat CudaInterface::SLIC_superpixels(cv::Mat& input, int density, int* num_su
 	for (int row = 0; row < K_rows; row++) {
 		for (int col = 0; col < K_cols; col++) {
 
-			int focus_sector_id = (row* K_cols) + col;
+			int focus_sector_id = (row * K_cols) + col;
 
 			int center = 0;
 			for (int irow = -1; irow <= 1; irow++) {
@@ -520,14 +560,6 @@ cv::Mat CudaInterface::SLIC_superpixels(cv::Mat& input, int density, int* num_su
 	*num_superpixels_result = actual_num_superpixels;
 	return host_labels;
 }
-
-//working as intended :)
-void CudaInterface::enforce_connectivity(gMat& labels, int* num_superpixels, int threshold) {
-	separate_blobs_launch(labels);
-	absorb_small_blobs_launch(labels, threshold);
-	produce_ordered_labels_launch(labels, num_superpixels);
-}
-
 
 
 #pragma endregion
