@@ -205,7 +205,9 @@
       <FastMath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</FastMath>
     </CudaCompile>
     <CudaCompile Include="Cuda_functions\functions\SLIC\absorb_small_blobs.cu" />
+    <CudaCompile Include="Cuda_functions\functions\SLIC\assign_pixels_to_centers.cu" />
     <CudaCompile Include="Cuda_functions\functions\SLIC\find_labels.cu" />
+    <CudaCompile Include="Cuda_functions\functions\SLIC\identify_closest_centers.cu" />
     <CudaCompile Include="Cuda_functions\functions\SLIC\produce_ordered_labels.cu" />
     <CudaCompile Include="Cuda_functions\functions\SLIC\separate_blobs.cu" />
     <CudaCompile Include="Cuda_functions\functions\SLIC\update_centers.cu" />
@@ -240,12 +242,15 @@
     <ClInclude Include="Cuda_functions\classes\CudaUtil.h" />
     <ClInclude Include="Cuda_functions\classes\cuda_function_includes.h" />
     <ClInclude Include="Cuda_functions\classes\cuda_macros.h" />
+    <ClInclude Include="Cuda_functions\classes\host_macros.h" />
     <ClInclude Include="Cuda_functions\headers\AP\dampen_messages.cuh" />
     <ClInclude Include="Cuda_functions\headers\generic operations\exclusive_scan_vec.cuh" />
     <ClInclude Include="Cuda_functions\headers\AP\extract_exemplars.cuh" />
     <ClInclude Include="Cuda_functions\headers\generic operations\gradient_descent.cuh" />
     <ClInclude Include="Cuda_functions\headers\misc\fast_selective_blur.cuh" />
     <ClInclude Include="Cuda_functions\headers\SLIC\absorb_small_blobs.cuh" />
+    <ClInclude Include="Cuda_functions\headers\SLIC\assign_pixels_to_centers.cuh" />
+    <ClInclude Include="Cuda_functions\headers\SLIC\identify_closest_centers.cuh" />
     <ClInclude Include="Cuda_functions\headers\SLIC\produce_ordered_labels.cuh" />
     <ClInclude Include="Cuda_functions\headers\SLIC\separate_blobs.cuh" />
     <ClInclude Include="Cuda_functions\headers\SP processing\find_borders.cuh" />

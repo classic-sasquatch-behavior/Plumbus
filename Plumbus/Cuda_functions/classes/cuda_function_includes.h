@@ -23,6 +23,8 @@
 #include"../headers/SLIC/absorb_small_blobs.cuh"
 #include"../headers/SLIC/produce_ordered_labels.cuh"
 #include"../headers/SLIC/separate_blobs.cuh"
+#include"../headers/SLIC/assign_pixels_to_centers.cuh"
+#include"../headers/SLIC/identify_closest_centers.cuh"
 
 #include"../headers/SP processing/find_borders.cuh"
 

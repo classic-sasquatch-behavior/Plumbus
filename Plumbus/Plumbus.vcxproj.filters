@@ -213,6 +213,11 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Cuda_functions\headers\generic operations\gradient_descent.cuh" />
+    <ClInclude Include="Cuda_functions\classes\host_macros.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Cuda_functions\headers\SLIC\identify_closest_centers.cuh" />
+    <ClInclude Include="Cuda_functions\headers\SLIC\assign_pixels_to_centers.cuh" />
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="Cuda_functions\functions\misc\selective_blur.cu" />
@@ -236,5 +241,7 @@
     <CudaCompile Include="Cuda_functions\functions\SLIC\absorb_small_blobs.cu" />
     <CudaCompile Include="Cuda_functions\functions\SLIC\produce_ordered_labels.cu" />
     <CudaCompile Include="Cuda_functions\functions\generic operations\gradient_descent.cu" />
+    <CudaCompile Include="Cuda_functions\functions\SLIC\identify_closest_centers.cu" />
+    <CudaCompile Include="Cuda_functions\functions\SLIC\assign_pixels_to_centers.cu" />
   </ItemGroup>
 </Project>

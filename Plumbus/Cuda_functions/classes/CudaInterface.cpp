@@ -2,6 +2,7 @@
 #include"cuda_function_includes.h"
 #include"../../classes.h"
 #include"../../config.h"
+#include"host_macros.h"
 
 
 CudaUtil* boilerplate;
@@ -276,36 +277,79 @@ void CudaInterface::affinity_propagation_color(cv::Mat& colors, cv::Mat &coordin
 #pragma region SLIC
 
 cv::Mat CudaInterface::SLIC_improved(cv::Mat& BGR_input, int* num_superpixels_result) {
+	//parameters
 	const int min_displacement_for_convergence = 1; //the average movement of new centers before SLIC algorithm is declared as converged
 	const int SP_size_factor = 10; //this number squared = area of superpixels
+	const int& S = SP_size_factor;
 	const int density = 10;  //[1-20]
 	const int search_depth = 9; //number of closest centers for pixels to consider
+	const int EC_size_threshold = (S * S) / 2;
 
+	//preprocess input
 	cv::Mat LAB_src;
 	cv::Mat host_labels(BGR_input.size(), CV_32SC1);
 	cv::cvtColor(BGR_input, LAB_src, cv::COLOR_BGR2Lab);
 	cv::Mat& input = LAB_src;
+	int mat_type = CV_32SC1;
 
+	//get sizes
 	int N_rows = input.rows;
 	int N_cols = input.cols;
 	int N = N_rows * N_cols;
 	int K_rows = floor(N_rows/SP_size_factor);
 	int K_cols = floor(N_cols / SP_size_factor);
 	int K = K_rows * K_cols;
-	int SP_size = SP_size_factor * SP_size_factor;
+	int SP_size = S*S;
 
 	//initialize centers
-	//upload necessary mats
-	//maybe gradient descent (implement at end)
+	cv::Mat centers(input.size(), mat_type, cv::Scalar{-1});
+	cv::Mat center_rows(cv::Size(K, 1), mat_type);
+	cv::Mat center_cols = center_rows;
+
+	int offset = S / 2;
+	for_row_col(K_rows, K_cols,
+		int actual_row = (row*S) + offset;
+		int actual_col = (col*S) + offset;
+		int id = (row * K_cols) + col;
+		centers.at<int>(actual_row, actual_col) = id;
+		center_rows.at<int>(0, id) = actual_row;
+		center_cols.at<int>(0, id) = actual_col;
+		);
+	
+	//upload mats
+	cv::cuda::GpuMat d_labels, d_row_vals, d_col_vals, d_centers;
+	d_labels.upload(host_labels);
+	d_centers.upload(centers);
+	d_row_vals.upload(center_rows);
+	d_col_vals.upload(center_cols);
+	//maybe gradient descent (implement later)
 	
 	//begin loop
-	//recognize closest centers (linear flow)
-	//assign pixels to centers
-	//recalculate center positions
-	//check for convergence
+	bool converged = false;
+	int total_displacement = 0;
+
+	while (!converged) {
+
+		//identify closest centers to each pixel (linear flow)
+		identify_closest_centers_launch();
+
+		//assign pixels to centers
+		assign_pixels_to_centers_launch();
+
+		//recalculate center positions
+		update_centers_launch();
+		
+		//check for convergence
+		if (total_displacement < min_displacement_for_convergence) {
+			converged = true;
+		}
+	}
 
 	//enforce connectivity
+	enforce_connectivity(d_labels, num_superpixels_result, EC_size_threshold);
 
+	d_labels.download(host_labels);
+	return host_labels;
 }
 
 void CudaInterface::enforce_connectivity(gMat& labels, int* num_superpixels, int threshold) {
