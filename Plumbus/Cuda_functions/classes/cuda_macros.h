@@ -24,6 +24,28 @@
 	content_of_expression																																\
 	}}
 
+
+
+
+
+//returns neighbor_row and neighbor_col as indices relative to row and col of thread
+#define for_each_immediate_neighbor_specific(row_bounds, col_bounds, starting_row, starting_col, content_of_expression)																								\
+	for (int irow = -1; irow <= 1; irow++) { for (int icol = -1; icol <= 1; icol++)																		\
+	{ int neighbor_row = starting_row + irow; int neighbor_col = starting_col + icol;																						\
+	if (neighbor_row >= row_bounds || neighbor_col >= col_bounds || neighbor_row < 0 || neighbor_col < 0) { break; }										\
+	content_of_expression																																\
+	}}
+
+
+
+
+
+
+
+
+
+
+
 //simple as. leave out the semicolon and add it in the code for formatting reasons. consider making this check errors too.
 #define cusync 	cudaDeviceSynchronize() 
 
@@ -33,6 +55,7 @@ if (function_name != cudaSuccess) { printf("CUDA error: %s: %s \n", cudaGetError
 
 
 #define alias_input(actual_name_of_input) gMat &input = actual_name_of_input;
+#define alias_src(actual_name_of_src) iptr &src = actual_name_of_src;
 
 #define get_structure_from_mat																																										\
 int rows, cols, N;																																													\

@@ -19,8 +19,8 @@ public:
 
 
 #pragma region SLIC
-	cv::Mat SLIC_superpixels(cv::Mat& input, int num_centers, int* num_superpixels_result);
-	cv::Mat SLIC_improved(cv::Mat& input,  int* num_superpixels_result);
+	cv::Mat SLIC_old(cv::Mat& input, int num_centers, int* num_superpixels_result);
+	cv::Mat SLIC_superpixels(cv::Mat& input,  int* num_superpixels_result);
 	
 	void enforce_connectivity(gMat &labels, int* num_superpixels, int threshold );
 

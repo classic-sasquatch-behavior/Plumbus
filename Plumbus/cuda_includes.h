@@ -13,6 +13,8 @@
 #include<cuda.h>
 #include<cuda_runtime.h>
 #include<cuda_runtime_api.h>
+#include<device_functions.h>
+
 
 //thrust
 #include <thrust/host_vector.h>
@@ -39,7 +41,9 @@ typedef cv::cuda::GpuMat gMat;
 //class CudaUtil;
 extern CudaUtil* boilerplate;
 
+
 #include"Cuda_functions/classes/cuda_macros.h"
+#include"Cuda_functions/classes/host_macros.h"
 
 
 

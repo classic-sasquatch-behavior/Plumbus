@@ -10,3 +10,12 @@ for(int row = 0; row < max_rows; row++){			\
 		content										\
 	}												\
 }
+
+
+
+#define for_i_j(max_i, max_j, content)   \
+for(int i = 0; i < max_i; i++){			\
+	for (int j = 0; j < max_j; j++) {		\
+		content										\
+	}												\
+}
